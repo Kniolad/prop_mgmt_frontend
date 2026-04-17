@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-    <h1>🏠 Property Manager</h1>
+    <h1>🏠 Alex's Property Portal</h1>
     
     <!-- Navigation Tabs -->
     <div class="nav-tabs">
