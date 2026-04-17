@@ -8,39 +8,20 @@
         <div>
           <p class="eyebrow">Portfolio workspace</p>
           <h1>Property Management Portal</h1>
-          <p class="page-subtitle">A cleaner, modern workspace for properties, cash flow, and portfolio visibility.</p>
+          <p class="page-subtitle">
+            A luxury dark mode dashboard for properties, cash flow, and portfolio visibility.
+          </p>
         </div>
         <div class="header-chip">{{ properties.length }} {{ properties.length === 1 ? 'Property' : 'Properties' }}</div>
       </header>
 
       <div class="nav-tabs">
-        <button
-          @click="activeTab = 'properties'"
-          :class="{ active: activeTab === 'properties' }"
-        >
-          Properties
-        </button>
-        <button
-          @click="activeTab = 'income'"
-          :class="{ active: activeTab === 'income' }"
-        >
-          Income
-        </button>
-        <button
-          @click="activeTab = 'expenses'"
-          :class="{ active: activeTab === 'expenses' }"
-        >
-          Expenses
-        </button>
-        <button
-          @click="activeTab = 'analytics'"
-          :class="{ active: activeTab === 'analytics' }"
-        >
-          Analytics
-        </button>
+        <button @click="activeTab = 'properties'" :class="{ active: activeTab === 'properties' }">Properties</button>
+        <button @click="activeTab = 'income'" :class="{ active: activeTab === 'income' }">Income</button>
+        <button @click="activeTab = 'expenses'" :class="{ active: activeTab === 'expenses' }">Expenses</button>
+        <button @click="activeTab = 'analytics'" :class="{ active: activeTab === 'analytics' }">Analytics</button>
       </div>
 
-      <!-- PROPERTIES TAB -->
       <div v-if="activeTab === 'properties'" class="tab-content">
         <section class="section-header">
           <div>
@@ -71,9 +52,7 @@
             <button @click="saveProperty" class="btn-primary">
               {{ editingProperty ? 'Update' : 'Add' }} Property
             </button>
-            <button v-if="editingProperty" @click="cancelEdit" class="btn-secondary">
-              Cancel
-            </button>
+            <button v-if="editingProperty" @click="cancelEdit" class="btn-secondary">Cancel</button>
           </div>
         </div>
 
@@ -120,7 +99,6 @@
         </div>
       </div>
 
-      <!-- INCOME TAB -->
       <div v-if="activeTab === 'income'" class="tab-content">
         <section class="section-header">
           <div>
@@ -179,7 +157,6 @@
         </div>
       </div>
 
-      <!-- EXPENSES TAB -->
       <div v-if="activeTab === 'expenses'" class="tab-content">
         <section class="section-header">
           <div>
@@ -238,7 +215,6 @@
         </div>
       </div>
 
-      <!-- ANALYTICS TAB -->
       <div v-if="activeTab === 'analytics'" class="tab-content">
         <section class="section-header">
           <div>
@@ -262,13 +238,13 @@
         <div v-if="selectedPropertyForAnalytics" class="analytics-dashboard">
           <div class="analytics-card glass-card">
             <h4>Total Income</h4>
-            <p class="analytics-value success">${{ calculateTotalIncomeForProperty(selectedPropertyForAnalytics) }}</p>
+            <p class="analytics-value success">${{ calculateTotalIncomeForProperty() }}</p>
             <p class="analytics-subtitle">All-time income</p>
           </div>
 
           <div class="analytics-card glass-card">
             <h4>Total Expenses</h4>
-            <p class="analytics-value danger">${{ calculateTotalExpensesForProperty(selectedPropertyForAnalytics) }}</p>
+            <p class="analytics-value danger">${{ calculateTotalExpensesForProperty() }}</p>
             <p class="analytics-subtitle">All-time expenses</p>
           </div>
 
@@ -427,47 +403,45 @@ function stringToSeed(input = '') {
 function generatePropertyImage(property) {
   const descriptor = `${property?.address || ''} ${property?.city || ''} ${property?.property_type || ''}`
   const seed = stringToSeed(descriptor)
-  const sky = ['#d9d4cb', '#d6d1c8', '#d8ddd8', '#d4d0cb'][seed % 4]
-  const ground = ['#c7b8a3', '#b7b0a7', '#bcae9d', '#c4b9aa'][seed % 4]
-  const house = ['#7a6f66', '#6f766f', '#84786d', '#72685f'][seed % 4]
-  const roof = ['#4f4a45', '#58524b', '#4b524e', '#554c46'][seed % 4]
-  const accent = ['#a89f8d', '#9aa295', '#b0a08e', '#9f9687'][seed % 4]
-  const windows = ['#f3efe8', '#efeae2', '#f5f2ec', '#ece7de'][seed % 4]
+  const sky = ['#1f2b34', '#22323a', '#263741', '#1d2a31'][seed % 4]
+  const ground = ['#332b24', '#3a3128', '#302821', '#40362b'][seed % 4]
+  const house = ['#6f6255', '#7b6b5d', '#66594d', '#857565'][seed % 4]
+  const roof = ['#b39568', '#c2a87d', '#9f8460', '#c0a16e'][seed % 4]
+  const accent = ['#4c6575', '#57707f', '#425866', '#617c8b'][seed % 4]
+  const windows = ['#eadfcd', '#f2e6d5', '#e8dbc8', '#efe4d4'][seed % 4]
 
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 480">
       <defs>
         <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stop-color="${sky}" />
-          <stop offset="100%" stop-color="#f5f3ef" />
+          <stop offset="100%" stop-color="#121212" />
         </linearGradient>
         <linearGradient id="ground" x1="0" y1="0" x2="1" y2="0">
           <stop offset="0%" stop-color="${ground}" />
-          <stop offset="100%" stop-color="#ddd6ca" />
+          <stop offset="100%" stop-color="#1c1c1c" />
         </linearGradient>
       </defs>
       <rect width="800" height="480" fill="url(#sky)" />
-      <circle cx="652" cy="94" r="42" fill="#f3eee5" opacity="0.95" />
+      <circle cx="652" cy="94" r="42" fill="#d4bc92" opacity="0.22" />
       <rect y="332" width="800" height="148" fill="url(#ground)" />
-      <rect x="96" y="298" width="608" height="24" rx="12" fill="#b7aa97" opacity="0.45"/>
+      <rect x="96" y="298" width="608" height="24" rx="12" fill="#8c7358" opacity="0.22"/>
       <rect x="206" y="180" width="388" height="156" rx="10" fill="${house}" />
       <polygon points="180,208 400,96 620,208" fill="${roof}" />
       <rect x="370" y="238" width="70" height="98" rx="6" fill="${accent}" />
       <rect x="252" y="226" width="72" height="58" rx="6" fill="${windows}" />
       <rect x="478" y="226" width="72" height="58" rx="6" fill="${windows}" />
-      <rect x="250" y="226" width="76" height="8" rx="4" fill="#c7c1b7" opacity="0.7" />
-      <rect x="476" y="226" width="76" height="8" rx="4" fill="#c7c1b7" opacity="0.7" />
-      <rect x="115" y="244" width="74" height="92" rx="8" fill="#8c8378" opacity="0.9" />
-      <circle cx="140" cy="272" r="26" fill="#9ea18e" />
-      <circle cx="164" cy="262" r="24" fill="#8f9480" />
-      <circle cx="157" cy="287" r="22" fill="#a9ab97" />
-      <rect x="154" y="286" width="9" height="50" rx="4" fill="#786d60" />
-      <rect x="605" y="246" width="74" height="90" rx="8" fill="#8d8479" opacity="0.9" />
-      <circle cx="629" cy="272" r="24" fill="#9ea18e" />
-      <circle cx="652" cy="262" r="22" fill="#8f9480" />
-      <circle cx="645" cy="286" r="20" fill="#a9ab97" />
-      <rect x="640" y="286" width="9" height="50" rx="4" fill="#786d60" />
-      <text x="400" y="434" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#5b544d" opacity="0.72">
+      <rect x="115" y="244" width="74" height="92" rx="8" fill="#4a4036" opacity="0.9" />
+      <circle cx="140" cy="272" r="26" fill="#5c7667" />
+      <circle cx="164" cy="262" r="24" fill="#496253" />
+      <circle cx="157" cy="287" r="22" fill="#718b7a" />
+      <rect x="154" y="286" width="9" height="50" rx="4" fill="#4a4036" />
+      <rect x="605" y="246" width="74" height="90" rx="8" fill="#4a4036" opacity="0.9" />
+      <circle cx="629" cy="272" r="24" fill="#5c7667" />
+      <circle cx="652" cy="262" r="22" fill="#496253" />
+      <circle cx="645" cy="286" r="20" fill="#718b7a" />
+      <rect x="640" y="286" width="9" height="50" rx="4" fill="#4a4036" />
+      <text x="400" y="434" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#dbc29a" opacity="0.72">
         ${String(property?.property_type || 'Property').slice(0, 20)}
       </text>
     </svg>
@@ -578,7 +552,10 @@ async function viewPropertyDetails(propertyId) {
 }
 
 async function loadIncomeRecords() {
-  if (!selectedPropertyForIncome.value) return
+  if (!selectedPropertyForIncome.value) {
+    incomeRecords.value = []
+    return
+  }
 
   try {
     const response = await fetch(`${API_BASE_URL}/properties/${selectedPropertyForIncome.value}/income`)
@@ -619,7 +596,10 @@ async function addIncome() {
 }
 
 async function loadExpenseRecords() {
-  if (!selectedPropertyForExpense.value) return
+  if (!selectedPropertyForExpense.value) {
+    expenseRecords.value = []
+    return
+  }
 
   try {
     const response = await fetch(`${API_BASE_URL}/properties/${selectedPropertyForExpense.value}/expenses`)
@@ -675,24 +655,23 @@ function calculateTotalExpensesForProperty() {
   return propertyExpensesForDetails.value.reduce((sum, exp) => sum + (exp.amount || 0), 0).toFixed(2)
 }
 
-function getPropertyMonthlyRent(propertyId) {
+function getPropertyMonthlyRent(propertyIdRef) {
+  const propertyId = typeof propertyIdRef === 'object' ? propertyIdRef.value : propertyIdRef
   const prop = properties.value.find(p => p.property_id === propertyId)
   return prop?.monthly_rent || 0
 }
 
 const netIncome = computed(() => {
-  const income = parseFloat(calculateTotalIncomeForProperty(selectedPropertyForAnalytics.value)) || 0
-  const expenses = parseFloat(calculateTotalExpensesForProperty(selectedPropertyForAnalytics.value)) || 0
+  const income = parseFloat(calculateTotalIncomeForProperty()) || 0
+  const expenses = parseFloat(calculateTotalExpensesForProperty()) || 0
   return (income - expenses).toFixed(2)
 })
 
 watch(selectedPropertyForIncome, () => {
-  if (!selectedPropertyForIncome.value) incomeRecords.value = []
   loadIncomeRecords()
 })
 
 watch(selectedPropertyForExpense, () => {
-  if (!selectedPropertyForExpense.value) expenseRecords.value = []
   loadExpenseRecords()
 })
 
@@ -729,50 +708,35 @@ onMounted(() => {
 }
 
 :root {
-  /* Luxury Dark Mode Palette */
-  --bg: #121212;                 /* deep charcoal */
-  --bg-soft: #181818;           /* layered dark */
+  --bg: #121212;
+  --bg-soft: #181818;
   --surface: rgba(28, 28, 28, 0.85);
   --surface-strong: rgba(34, 34, 34, 0.95);
-
   --border: rgba(200, 180, 150, 0.12);
   --border-strong: rgba(200, 180, 150, 0.22);
-
-  --text: #eae6df;              /* soft warm white */
-  --muted: #b7aa98;             /* beige-muted */
+  --text: #eae6df;
+  --muted: #b7aa98;
   --muted-soft: #8f8578;
-
-  /* Luxury neutrals */
-  --primary: #c2a87d;           /* gold-beige accent */
+  --primary: #c2a87d;
   --primary-strong: #a78d63;
-
-  /* Deep blue accent */
-  --accent-blue: #3e5a6b;       /* slate blue */
+  --accent-blue: #3e5a6b;
   --accent-blue-soft: #6e8796;
-
-  /* Semantic tones (luxury muted) */
   --success: #6f8f7a;
   --danger: #a36a5f;
-
   --shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.35);
-
   --radius-xl: 26px;
   --radius-lg: 20px;
   --radius-md: 14px;
-}
-
-body {
-  margin: 0;
 }
 
 .portal-shell {
   position: relative;
   min-height: 100vh;
   background:
-    radial-gradient(circle at top left, rgba(199, 190, 178, 0.35), transparent 32%),
-    radial-gradient(circle at right center, rgba(182, 176, 168, 0.18), transparent 24%),
-    linear-gradient(180deg, #f7f4ee 0%, #efe9df 100%);
+    radial-gradient(circle at top left, rgba(194, 168, 125, 0.08), transparent 30%),
+    radial-gradient(circle at right center, rgba(62, 90, 107, 0.12), transparent 28%),
+    linear-gradient(180deg, #171717 0%, #101010 100%);
   overflow: hidden;
 }
 
@@ -786,7 +750,7 @@ body {
 .ambient-1 {
   width: 360px;
   height: 360px;
-  background: rgba(197, 186, 170, 0.16);
+  background: rgba(194, 168, 125, 0.06);
   top: -80px;
   right: -80px;
 }
@@ -794,7 +758,7 @@ body {
 .ambient-2 {
   width: 280px;
   height: 280px;
-  background: rgba(181, 173, 159, 0.16);
+  background: rgba(62, 90, 107, 0.1);
   bottom: 40px;
   left: -60px;
 }
@@ -829,7 +793,7 @@ body {
 }
 
 .section-kicker.light {
-  color: rgba(255,255,255,0.78);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 h1 {
@@ -850,7 +814,7 @@ h1 {
 .header-chip {
   padding: 12px 16px;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.62);
+  background: rgba(36, 36, 36, 0.75);
   backdrop-filter: blur(10px);
   border-radius: 999px;
   color: var(--muted);
@@ -871,7 +835,7 @@ h1 {
   gap: 8px;
   padding: 8px;
   margin-bottom: 30px;
-  background: rgba(255, 255, 255, 0.58);
+  background: rgba(30, 30, 30, 0.75);
   border: 1px solid var(--border);
   backdrop-filter: blur(14px);
   border-radius: 999px;
@@ -890,14 +854,14 @@ h1 {
 }
 
 .nav-tabs button:hover {
-  background: rgba(109, 102, 93, 0.08);
+  background: rgba(194, 168, 125, 0.08);
   color: var(--text);
 }
 
 .nav-tabs button.active {
   background: var(--primary);
-  color: white;
-  box-shadow: 0 10px 20px rgba(83, 77, 71, 0.18);
+  color: #171717;
+  box-shadow: 0 10px 20px rgba(194, 168, 125, 0.18);
 }
 
 .tab-content {
@@ -923,6 +887,7 @@ h2 {
   margin: 0;
   font-size: 1.7rem;
   letter-spacing: -0.03em;
+  color: var(--text);
 }
 
 h3 {
@@ -984,16 +949,16 @@ h4 {
   width: 100%;
   padding: 14px 16px;
   border-radius: 14px;
-  border: 1px solid rgba(91, 84, 77, 0.1);
-  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(200, 180, 150, 0.12);
+  background: rgba(38, 38, 38, 0.92);
   color: var(--text);
   font-size: 14px;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .form-card input::placeholder,
 .form-card textarea::placeholder {
-  color: #9a9188;
+  color: var(--muted-soft);
 }
 
 .form-card input:focus,
@@ -1001,8 +966,8 @@ h4 {
 .form-card textarea:focus,
 .select-large:focus {
   outline: none;
-  border-color: rgba(109, 102, 93, 0.35);
-  box-shadow: 0 0 0 4px rgba(109, 102, 93, 0.08);
+  border-color: rgba(194, 168, 125, 0.4);
+  box-shadow: 0 0 0 4px rgba(194, 168, 125, 0.08);
 }
 
 .button-group {
@@ -1024,24 +989,25 @@ h4 {
   padding: 13px 18px;
   border-radius: 14px;
   background: var(--primary);
-  color: white;
-  box-shadow: 0 12px 24px rgba(83, 77, 71, 0.18);
+  color: #171717;
+  box-shadow: 0 12px 24px rgba(194, 168, 125, 0.22);
 }
 
 .btn-primary:hover {
   transform: translateY(-1px);
   background: var(--primary-strong);
+  color: #111;
 }
 
 .btn-secondary {
   padding: 13px 18px;
   border-radius: 14px;
-  background: rgba(109, 102, 93, 0.12);
+  background: rgba(255, 255, 255, 0.06);
   color: var(--text);
 }
 
 .btn-secondary:hover {
-  background: rgba(109, 102, 93, 0.18);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .inline-button {
@@ -1094,7 +1060,7 @@ h4 {
 .media-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(28, 25, 23, 0.08) 0%, rgba(28, 25, 23, 0.52) 100%);
+  background: linear-gradient(180deg, rgba(18, 18, 18, 0.12) 0%, rgba(18, 18, 18, 0.66) 100%);
 }
 
 .media-top-row,
@@ -1123,13 +1089,13 @@ h4 {
 }
 
 .property-badge {
-  background: rgba(255,255,255,0.76);
-  color: #423c37;
+  background: rgba(194, 168, 125, 0.9);
+  color: #171717;
 }
 
 .property-id {
-  background: rgba(40, 35, 31, 0.24);
-  color: rgba(255,255,255,0.92);
+  background: rgba(15, 15, 15, 0.42);
+  color: rgba(255, 255, 255, 0.92);
 }
 
 .media-bottom-row h3 {
@@ -1140,7 +1106,7 @@ h4 {
 
 .media-bottom-row p {
   margin: 0;
-  color: rgba(255,255,255,0.82);
+  color: rgba(255, 255, 255, 0.82);
   font-size: 14px;
 }
 
@@ -1154,7 +1120,7 @@ h4 {
   justify-content: space-between;
   gap: 16px;
   padding: 10px 0;
-  border-bottom: 1px solid rgba(91, 84, 77, 0.08);
+  border-bottom: 1px solid rgba(200, 180, 150, 0.08);
   font-size: 14px;
 }
 
@@ -1184,31 +1150,31 @@ h4 {
 .btn-small {
   padding: 11px 12px;
   border-radius: 12px;
-  background: rgba(109, 102, 93, 0.1);
+  background: rgba(255, 255, 255, 0.06);
   color: var(--text);
 }
 
 .btn-small:hover {
   transform: translateY(-1px);
-  background: rgba(109, 102, 93, 0.16);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .btn-accent {
-  background: var(--primary);
+  background: var(--accent-blue);
   color: white;
 }
 
 .btn-accent:hover {
-  background: var(--primary-strong);
+  background: var(--accent-blue-soft);
 }
 
 .btn-danger {
-  background: rgba(139, 101, 95, 0.14);
-  color: #6e4f49;
+  background: rgba(163, 106, 95, 0.16);
+  color: #e2c0b7;
 }
 
 .btn-danger:hover {
-  background: rgba(139, 101, 95, 0.22);
+  background: rgba(163, 106, 95, 0.24);
 }
 
 .record-card,
@@ -1218,11 +1184,11 @@ h4 {
 }
 
 .record-card.income {
-  border: 1px solid rgba(96, 115, 95, 0.18);
+  border: 1px solid rgba(111, 143, 122, 0.18);
 }
 
 .record-card.expense {
-  border: 1px solid rgba(139, 101, 95, 0.18);
+  border: 1px solid rgba(163, 106, 95, 0.18);
 }
 
 .record-header {
@@ -1288,6 +1254,7 @@ h4 {
   font-size: 2.15rem;
   font-weight: 700;
   letter-spacing: -0.04em;
+  color: var(--text);
 }
 
 .empty-state {
@@ -1309,7 +1276,7 @@ h4 {
 .modal {
   position: fixed;
   inset: 0;
-  background: rgba(25, 22, 19, 0.38);
+  background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
@@ -1324,6 +1291,7 @@ h4 {
   max-height: 86vh;
   overflow-y: auto;
   padding: 18px;
+  background: var(--surface-strong);
 }
 
 .modal-close {
@@ -1334,7 +1302,7 @@ h4 {
   height: 38px;
   border-radius: 999px;
   border: none;
-  background: rgba(255,255,255,0.78);
+  background: rgba(255, 255, 255, 0.08);
   color: var(--text);
   font-size: 24px;
   cursor: pointer;
@@ -1372,7 +1340,7 @@ h4 {
 
 .modal-details hr {
   border: none;
-  border-top: 1px solid rgba(91, 84, 77, 0.12);
+  border-top: 1px solid rgba(200, 180, 150, 0.12);
   margin: 22px 0;
 }
 
@@ -1389,8 +1357,8 @@ h4 {
   align-items: center;
   padding: 12px 14px;
   border-radius: 14px;
-  background: rgba(255,255,255,0.62);
-  border: 1px solid rgba(91, 84, 77, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(200, 180, 150, 0.08);
   font-size: 13px;
 }
 
