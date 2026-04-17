@@ -729,21 +729,34 @@ onMounted(() => {
 }
 
 :root {
-  --bg: #f5f2ec;
-  --bg-soft: #efebe4;
-  --surface: rgba(255, 255, 255, 0.72);
-  --surface-strong: rgba(255, 255, 255, 0.88);
-  --border: rgba(91, 84, 77, 0.12);
-  --border-strong: rgba(91, 84, 77, 0.18);
-  --text: #2e2a27;
-  --muted: #6f675f;
-  --muted-soft: #8d847b;
-  --primary: #6d665d;
-  --primary-strong: #534d47;
-  --success: #60735f;
-  --danger: #8b655f;
-  --shadow: 0 18px 50px rgba(57, 48, 40, 0.08);
-  --shadow-soft: 0 8px 24px rgba(57, 48, 40, 0.06);
+  /* Neutral + Blue Accents Palette */
+  --bg: #f5f1ea;                /* warm beige background */
+  --bg-soft: #ede7df;
+  --surface: rgba(255, 255, 255, 0.78);
+  --surface-strong: rgba(255, 255, 255, 0.92);
+
+  --border: rgba(120, 102, 84, 0.12);
+  --border-strong: rgba(120, 102, 84, 0.2);
+
+  --text: #2f2a26;              /* deep brown text */
+  --muted: #6e6258;             /* warm muted brown */
+  --muted-soft: #9a8f84;
+
+  /* Browns / Beige */
+  --primary: #7a6a58;           /* main brown */
+  --primary-strong: #5f5245;
+
+  /* Blue accent (modern, subtle) */
+  --accent-blue: #5f7c8a;
+  --accent-blue-soft: #8ea7b2;
+
+  /* Semantic colors blended with palette */
+  --success: #6b8a7a;           /* muted green-blue */
+  --danger: #a06a5f;            /* warm clay red */
+
+  --shadow: 0 18px 50px rgba(60, 48, 36, 0.08);
+  --shadow-soft: 0 8px 24px rgba(60, 48, 36, 0.06);
+
   --radius-xl: 26px;
   --radius-lg: 20px;
   --radius-md: 14px;
