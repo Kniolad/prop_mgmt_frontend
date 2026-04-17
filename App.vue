@@ -859,9 +859,9 @@ h1 {
 }
 
 .nav-tabs button.active {
-  background: var(--primary);
-  color: #171717;
-  box-shadow: 0 10px 20px rgba(194, 168, 125, 0.18);
+  background: var(--accent-blue);
+  color: #f8f6f2;
+  box-shadow: 0 10px 20px rgba(62, 90, 107, 0.28);
 }
 
 .tab-content {
