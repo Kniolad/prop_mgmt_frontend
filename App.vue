@@ -729,33 +729,33 @@ onMounted(() => {
 }
 
 :root {
-  /* Neutral + Blue Accents Palette */
-  --bg: #f5f1ea;                /* warm beige background */
-  --bg-soft: #ede7df;
-  --surface: rgba(255, 255, 255, 0.78);
-  --surface-strong: rgba(255, 255, 255, 0.92);
+  /* Luxury Dark Mode Palette */
+  --bg: #121212;                 /* deep charcoal */
+  --bg-soft: #181818;           /* layered dark */
+  --surface: rgba(28, 28, 28, 0.85);
+  --surface-strong: rgba(34, 34, 34, 0.95);
 
-  --border: rgba(120, 102, 84, 0.12);
-  --border-strong: rgba(120, 102, 84, 0.2);
+  --border: rgba(200, 180, 150, 0.12);
+  --border-strong: rgba(200, 180, 150, 0.22);
 
-  --text: #2f2a26;              /* deep brown text */
-  --muted: #6e6258;             /* warm muted brown */
-  --muted-soft: #9a8f84;
+  --text: #eae6df;              /* soft warm white */
+  --muted: #b7aa98;             /* beige-muted */
+  --muted-soft: #8f8578;
 
-  /* Browns / Beige */
-  --primary: #7a6a58;           /* main brown */
-  --primary-strong: #5f5245;
+  /* Luxury neutrals */
+  --primary: #c2a87d;           /* gold-beige accent */
+  --primary-strong: #a78d63;
 
-  /* Blue accent (modern, subtle) */
-  --accent-blue: #5f7c8a;
-  --accent-blue-soft: #8ea7b2;
+  /* Deep blue accent */
+  --accent-blue: #3e5a6b;       /* slate blue */
+  --accent-blue-soft: #6e8796;
 
-  /* Semantic colors blended with palette */
-  --success: #6b8a7a;           /* muted green-blue */
-  --danger: #a06a5f;            /* warm clay red */
+  /* Semantic tones (luxury muted) */
+  --success: #6f8f7a;
+  --danger: #a36a5f;
 
-  --shadow: 0 18px 50px rgba(60, 48, 36, 0.08);
-  --shadow-soft: 0 8px 24px rgba(60, 48, 36, 0.06);
+  --shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.35);
 
   --radius-xl: 26px;
   --radius-lg: 20px;
