@@ -1201,3 +1201,713 @@ h4 {
 
 /**
 
+    <!-- Tab Navigation -->
+    <div class="nav-tabs">
+      <button 
+        @click="activeTab = 'properties'" 
+        :class="{ active: activeTab === 'properties' }">
+        Properties
+      </button>
+      <button 
+        @click="activeTab = 'income'" 
+        :class="{ active: activeTab === 'income' }">
+        Income
+      </button>
+      <button 
+        @click="activeTab = 'expenses'" 
+        :class="{ active: activeTab === 'expenses' }">
+        Expenses
+      </button>
+    </div>
+
+    <!-- PROPERTIES TAB -->
+    <div v-if="activeTab === 'properties'" class="tab-content">
+      <div class="form-card">
+        <h2>Add New Property</h2>
+        <div class="form-group">
+          <input v-model="newName" placeholder="Property name" class="form-input" />
+          <input v-model="newAddress" placeholder="Address" class="form-input" />
+          <input v-model="newCity" placeholder="City" class="form-input" />
+          <input v-model="newState" placeholder="State" class="form-input" />
+          <button @click="addProperty" class="btn-primary">Add Property</button>
+        </div>
+      </div>
+
+      <div v-if="properties.length === 0" class="empty-state">
+        No properties found. Add your first property above!
+      </div>
+
+      <div v-else class="properties-grid">
+        <div v-for="p in properties" :key="p.id" class="property-card">
+          <h3>{{ p.name }}</h3>
+          <p v-if="p.address"><strong>Address:</strong> {{ p.address }}</p>
+          <p v-if="p.city"><strong>City:</strong> {{ p.city }}, {{ p.state }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- INCOME TAB -->
+    <div v-if="activeTab === 'income'" class="tab-content">
+      <div class="form-card">
+        <h2>Record Income</h2>
+        <div class="form-group">
+          <select v-model.number="selectedPropertyForIncome" class="form-input">
+            <option value="">-- Select a Property --</option>
+            <option v-for="p in properties" :key="p.id" :value="p.id">
+              {{ p.name }}
+            </option>
+          </select>
+          
+          <input 
+            v-model.number="incomeForm.amount" 
+            type="number" 
+            placeholder="Amount" 
+            step="0.01"
+            class="form-input" 
+          />
+          
+          <input 
+            v-model="incomeForm.date" 
+            type="date" 
+            class="form-input" 
+          />
+          
+          <input 
+            v-model="incomeForm.description" 
+            placeholder="Description (e.g., Monthly Rent)" 
+            class="form-input" 
+          />
+          
+          <button @click="addIncome" class="btn-primary" :disabled="!selectedPropertyForIncome">
+            Record Income
+          </button>
+        </div>
+      </div>
+
+      <div v-if="incomeRecords.length === 0" class="empty-state">
+        No income records yet. Add one above!
+      </div>
+
+      <div v-else class="records-grid">
+        <div v-for="inc in incomeRecords" :key="inc.id" class="record-card income-card">
+          <div class="record-header">
+            <span class="record-label">Income</span>
+            <span class="record-date">{{ formatDate(inc.date) }}</span>
+          </div>
+          <p class="record-amount income-amount">${{ inc.amount }}</p>
+          <p class="record-description">{{ inc.description || 'No description' }}</p>
+        </div>
+      </div>
+
+      <div v-if="incomeRecords.length > 0" class="summary-card success">
+        <h4>Income Summary</h4>
+        <p><strong>Total Income:</strong> ${{ calculateTotalIncome() }}</p>
+        <p><strong>Records:</strong> {{ incomeRecords.length }}</p>
+      </div>
+    </div>
+
+    <!-- EXPENSES TAB -->
+    <div v-if="activeTab === 'expenses'" class="tab-content">
+      <div class="form-card">
+        <h2>Record Expense</h2>
+        <div class="form-group">
+          <select v-model.number="selectedPropertyForExpense" class="form-input">
+            <option value="">-- Select a Property --</option>
+            <option v-for="p in properties" :key="p.id" :value="p.id">
+              {{ p.name }}
+            </option>
+          </select>
+          
+          <input 
+            v-model.number="expenseForm.amount" 
+            type="number" 
+            placeholder="Amount" 
+            step="0.01"
+            class="form-input" 
+          />
+          
+          <input 
+            v-model="expenseForm.date" 
+            type="date" 
+            class="form-input" 
+          />
+          
+          <input 
+            v-model="expenseForm.description" 
+            placeholder="Description (e.g., Maintenance, Repairs)" 
+            class="form-input" 
+          />
+          
+          <button @click="addExpense" class="btn-primary" :disabled="!selectedPropertyForExpense">
+            Record Expense
+          </button>
+        </div>
+      </div>
+
+      <div v-if="expenseRecords.length === 0" class="empty-state">
+        No expense records yet. Add one above!
+      </div>
+
+      <div v-else class="records-grid">
+        <div v-for="exp in expenseRecords" :key="exp.id" class="record-card expense-card">
+          <div class="record-header">
+            <span class="record-label">Expense</span>
+            <span class="record-date">{{ formatDate(exp.date) }}</span>
+          </div>
+          <p class="record-amount expense-amount">${{ exp.amount }}</p>
+          <p class="record-description">{{ exp.description || 'No description' }}</p>
+        </div>
+      </div>
+
+      <div v-if="expenseRecords.length > 0" class="summary-card danger">
+        <h4>Expense Summary</h4>
+        <p><strong>Total Expenses:</strong> ${{ calculateTotalExpenses() }}</p>
+        <p><strong>Records:</strong> {{ expenseRecords.length }}</p>
+      </div>
+    </div>
+
+    <!-- Notifications -->
+    <transition name="slide">
+      <div v-if="notification" :class="['notification', `notification-${notification.type}`]">
+        {{ notification.message }}
+      </div>
+    </transition>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+
+const API_BASE_URL = 'https://prop-mgmt-api-807815759229.us-central1.run.app'
+
+// Tab State
+const activeTab = ref('properties')
+
+// Properties
+const properties = ref([])
+const newName = ref("")
+const newAddress = ref("")
+const newCity = ref("")
+const newState = ref("")
+
+// Income
+const incomeRecords = ref([])
+const selectedPropertyForIncome = ref("")
+const incomeForm = ref({
+  amount: "",
+  date: "",
+  description: ""
+})
+
+// Expenses
+const expenseRecords = ref([])
+const selectedPropertyForExpense = ref("")
+const expenseForm = ref({
+  amount: "",
+  date: "",
+  description: ""
+})
+
+// Notifications
+const notification = ref(null)
+
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+
+function formatDate(dateString) {
+  if (!dateString) return 'N/A'
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  })
+}
+
+function showNotification(message, type = 'success') {
+  notification.value = { message, type }
+  setTimeout(() => {
+    notification.value = null
+  }, 3000)
+}
+
+// ============================================================================
+// PROPERTIES
+// ============================================================================
+
+async function loadProperties() {
+  try {
+    const res = await fetch(`${API_BASE_URL}/properties`)
+    if (!res.ok) throw new Error('Failed to fetch properties')
+    properties.value = await res.json()
+  } catch (error) {
+    console.error('Error loading properties:', error)
+    showNotification('Failed to load properties', 'error')
+  }
+}
+
+async function addProperty() {
+  if (!newName.value.trim()) {
+    showNotification('Please enter a property name', 'error')
+    return
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/properties`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name: newName.value,
+        address: newAddress.value || null,
+        city: newCity.value || null,
+        state: newState.value || null
+      })
+    })
+
+    if (!response.ok) throw new Error('Failed to add property')
+
+    newName.value = ""
+    newAddress.value = ""
+    newCity.value = ""
+    newState.value = ""
+    
+    await loadProperties()
+    showNotification('Property added successfully!')
+  } catch (error) {
+    console.error('Error adding property:', error)
+    showNotification('Failed to add property', 'error')
+  }
+}
+
+// ============================================================================
+// INCOME
+// ============================================================================
+
+async function loadIncomeRecords() {
+  if (!selectedPropertyForIncome.value) {
+    incomeRecords.value = []
+    return
+  }
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/properties/${selectedPropertyForIncome.value}/income`)
+    if (!res.ok) throw new Error('Failed to fetch income')
+    incomeRecords.value = await res.json()
+  } catch (error) {
+    console.error('Error loading income:', error)
+    showNotification('Failed to load income records', 'error')
+  }
+}
+
+async function addIncome() {
+  if (!selectedPropertyForIncome.value || !incomeForm.value.amount || !incomeForm.value.date) {
+    showNotification('Please fill in all required fields', 'error')
+    return
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/properties/${selectedPropertyForIncome.value}/income`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        amount: parseFloat(incomeForm.value.amount),
+        date: incomeForm.value.date,
+        description: incomeForm.value.description || 'Income'
+      })
+    })
+
+    if (!response.ok) throw new Error('Failed to add income')
+
+    incomeForm.value = { amount: "", date: "", description: "" }
+    await loadIncomeRecords()
+    showNotification('Income record added successfully!')
+  } catch (error) {
+    console.error('Error adding income:', error)
+    showNotification('Failed to add income record', 'error')
+  }
+}
+
+function calculateTotalIncome() {
+  return incomeRecords.value.reduce((sum, inc) => sum + (inc.amount || 0), 0).toFixed(2)
+}
+
+// ============================================================================
+// EXPENSES
+// ============================================================================
+
+async function loadExpenseRecords() {
+  if (!selectedPropertyForExpense.value) {
+    expenseRecords.value = []
+    return
+  }
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/properties/${selectedPropertyForExpense.value}/expenses`)
+    if (!res.ok) throw new Error('Failed to fetch expenses')
+    expenseRecords.value = await res.json()
+  } catch (error) {
+    console.error('Error loading expenses:', error)
+    showNotification('Failed to load expense records', 'error')
+  }
+}
+
+async function addExpense() {
+  if (!selectedPropertyForExpense.value || !expenseForm.value.amount || !expenseForm.value.date) {
+    showNotification('Please fill in all required fields', 'error')
+    return
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/properties/${selectedPropertyForExpense.value}/expenses`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        amount: parseFloat(expenseForm.value.amount),
+        date: expenseForm.value.date,
+        description: expenseForm.value.description || 'Expense'
+      })
+    })
+
+    if (!response.ok) throw new Error('Failed to add expense')
+
+    expenseForm.value = { amount: "", date: "", description: "" }
+    await loadExpenseRecords()
+    showNotification('Expense record added successfully!')
+  } catch (error) {
+    console.error('Error adding expense:', error)
+    showNotification('Failed to add expense record', 'error')
+  }
+}
+
+function calculateTotalExpenses() {
+  return expenseRecords.value.reduce((sum, exp) => sum + (exp.amount || 0), 0).toFixed(2)
+}
+
+// ============================================================================
+// WATCHERS & LIFECYCLE
+// ============================================================================
+
+onMounted(() => {
+  loadProperties()
+})
+
+// Load records when property is selected using watch-like behavior
+import { watch } from 'vue'
+
+watch(selectedPropertyForIncome, () => {
+  loadIncomeRecords()
+})
+
+watch(selectedPropertyForExpense, () => {
+  loadExpenseRecords()
+})
+</script>
+
+<style scoped>
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --primary: #007bff;
+  --success: #28a745;
+  --danger: #dc3545;
+  --dark: #343a40;
+  --light: #f8f9fa;
+  --border: #dee2e6;
+}
+
+.app-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: var(--light);
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+h1 {
+  color: var(--dark);
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 32px;
+}
+
+h2 {
+  color: var(--dark);
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+h3 {
+  color: var(--dark);
+  margin-top: 0;
+}
+
+h4 {
+  color: var(--dark);
+  margin: 0 0 10px 0;
+}
+
+/* Navigation Tabs */
+.nav-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  border-bottom: 2px solid var(--border);
+  background: white;
+  padding: 0;
+  border-radius: 4px 4px 0 0;
+}
+
+.nav-tabs button {
+  padding: 12px 24px;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+  color: #666;
+  transition: all 0.3s ease;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+}
+
+.nav-tabs button:hover {
+  color: var(--primary);
+}
+
+.nav-tabs button.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.tab-content {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Forms */
+.form-card {
+  background: white;
+  padding: 24px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-input {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+/* Buttons */
+.btn-primary {
+  padding: 12px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  background-color: var(--primary);
+  color: white;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #0056b3;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Cards */
+.properties-grid,
+.records-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.property-card,
+.record-card {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border);
+  transition: all 0.3s ease;
+}
+
+.property-card:hover,
+.record-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+}
+
+.property-card p {
+  margin: 8px 0;
+  color: #666;
+  font-size: 14px;
+}
+
+/* Record Cards */
+.record-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  font-size: 12px;
+}
+
+.record-label {
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: #f0f0f0;
+}
+
+.record-date {
+  color: #999;
+}
+
+.record-amount {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 12px 0;
+}
+
+.income-card {
+  border-left: 4px solid var(--success);
+}
+
+.income-amount {
+  color: var(--success);
+}
+
+.expense-card {
+  border-left: 4px solid var(--danger);
+}
+
+.expense-amount {
+  color: var(--danger);
+}
+
+.record-description {
+  margin: 8px 0 0 0;
+  font-size: 13px;
+  color: #666;
+  font-style: italic;
+}
+
+/* Empty State */
+.empty-state {
+  background: white;
+  padding: 60px 20px;
+  border-radius: 8px;
+  text-align: center;
+  color: #999;
+  font-size: 16px;
+  border: 1px solid var(--border);
+  margin-bottom: 24px;
+}
+
+/* Summary Cards */
+.summary-card {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  border-left: 4px solid;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.summary-card.success {
+  border-left-color: var(--success);
+}
+
+.summary-card.danger {
+  border-left-color: var(--danger);
+}
+
+.summary-card p {
+  margin: 8px 0;
+  color: #666;
+  font-size: 14px;
+}
+
+/* Notifications */
+.notification {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 16px 24px;
+  border-radius: 6px;
+  color: white;
+  font-weight: 500;
+  animation: slideUp 0.3s ease;
+  z-index: 1000;
+}
+
+.notification-success {
+  background-color: var(--success);
+}
+
+.notification-error {
+  background-color: var(--danger);
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.slide-enter-active,
+.slide-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  transform: translateY(100px);
+  opacity: 0;
+}
+</style>
