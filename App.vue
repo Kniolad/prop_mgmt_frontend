@@ -1,47 +1,72 @@
 <template>
-  <div class="app-container">
-    <h1>🏠 Alex's Property Portal</h1>
-    
-    <!-- Navigation Tabs -->
-    <div class="nav-tabs">
-      <button 
-        @click="activeTab = 'properties'" 
-        :class="{ active: activeTab === 'properties' }">
-        Properties
-      </button>
-      <button 
-        @click="activeTab = 'income'" 
-        :class="{ active: activeTab === 'income' }">
-        Income
-      </button>
-      <button 
-        @click="activeTab = 'expenses'" 
-        :class="{ active: activeTab === 'expenses' }">
-        Expenses
-      </button>
-      <button 
-        @click="activeTab = 'analytics'" 
-        :class="{ active: activeTab === 'analytics' }">
-        Analytics
-      </button>
-    </div>
+  <div class="portal-shell">
+    <div class="ambient ambient-1"></div>
+    <div class="ambient ambient-2"></div>
 
-    <!-- PROPERTIES TAB -->
-    <div v-if="activeTab === 'properties'" class="tab-content">
-      <h2>Properties</h2>
-      
-      <!-- Add/Edit Property Form -->
-      <div class="form-card">
-        <h3>{{ editingProperty ? 'Edit Property' : 'Add New Property' }}</h3>
-        <div class="form-group">
-          <input v-model="newProperty.address" placeholder="Address" />
-          <input v-model="newProperty.city" placeholder="City" />
-          <input v-model="newProperty.state" placeholder="State" />
-          <input v-model="newProperty.postal_code" placeholder="Postal Code" />
-          <input v-model="newProperty.property_type" placeholder="Property Type (e.g., Apartment, House)" />
-          <input v-model.number="newProperty.monthly_rent" type="number" placeholder="Monthly Rent" />
-          <input v-model="newProperty.tenant_name" placeholder="Tenant Name" />
-          
+    <div class="app-container">
+      <header class="page-header">
+        <div>
+          <p class="eyebrow">Portfolio workspace</p>
+          <h1>Property Management Portal</h1>
+          <p class="page-subtitle">A cleaner, modern workspace for properties, cash flow, and portfolio visibility.</p>
+        </div>
+        <div class="header-chip">{{ properties.length }} {{ properties.length === 1 ? 'Property' : 'Properties' }}</div>
+      </header>
+
+      <div class="nav-tabs">
+        <button
+          @click="activeTab = 'properties'"
+          :class="{ active: activeTab === 'properties' }"
+        >
+          Properties
+        </button>
+        <button
+          @click="activeTab = 'income'"
+          :class="{ active: activeTab === 'income' }"
+        >
+          Income
+        </button>
+        <button
+          @click="activeTab = 'expenses'"
+          :class="{ active: activeTab === 'expenses' }"
+        >
+          Expenses
+        </button>
+        <button
+          @click="activeTab = 'analytics'"
+          :class="{ active: activeTab === 'analytics' }"
+        >
+          Analytics
+        </button>
+      </div>
+
+      <!-- PROPERTIES TAB -->
+      <div v-if="activeTab === 'properties'" class="tab-content">
+        <section class="section-header">
+          <div>
+            <p class="section-kicker">Manage portfolio</p>
+            <h2>Properties</h2>
+          </div>
+        </section>
+
+        <div class="form-card glass-card">
+          <div class="card-title-row">
+            <div>
+              <p class="section-kicker">Directory</p>
+              <h3>{{ editingProperty ? 'Edit Property' : 'Add New Property' }}</h3>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <input v-model="newProperty.address" placeholder="Address" />
+            <input v-model="newProperty.city" placeholder="City" />
+            <input v-model="newProperty.state" placeholder="State" />
+            <input v-model="newProperty.postal_code" placeholder="Postal Code" />
+            <input v-model="newProperty.property_type" placeholder="Property Type (e.g., Apartment, House)" />
+            <input v-model.number="newProperty.monthly_rent" type="number" placeholder="Monthly Rent" />
+            <input v-model="newProperty.tenant_name" placeholder="Tenant Name" class="span-2" />
+          </div>
+
           <div class="button-group">
             <button @click="saveProperty" class="btn-primary">
               {{ editingProperty ? 'Update' : 'Add' }} Property
@@ -51,239 +76,268 @@
             </button>
           </div>
         </div>
+
+        <div v-if="properties.length === 0" class="empty-state glass-card">
+          <div class="empty-icon">⌂</div>
+          <p>No properties found. Add your first property above.</p>
+        </div>
+
+        <div v-else class="properties-grid">
+          <article v-for="p in properties" :key="p.property_id" class="property-card glass-card">
+            <div class="property-media" :style="{ backgroundImage: `url(${generatePropertyImage(p)})` }">
+              <div class="media-overlay"></div>
+              <div class="media-top-row">
+                <span class="property-badge">{{ p.property_type || 'Property' }}</span>
+                <span class="property-id">ID {{ p.property_id }}</span>
+              </div>
+              <div class="media-bottom-row">
+                <h3>{{ p.address }}</h3>
+                <p>{{ p.city }}, {{ p.state }} {{ p.postal_code || '' }}</p>
+              </div>
+            </div>
+
+            <div class="card-details">
+              <div class="metric-row">
+                <span>Tenant</span>
+                <strong>{{ p.tenant_name || 'Vacant' }}</strong>
+              </div>
+              <div class="metric-row">
+                <span>Monthly rent</span>
+                <strong class="money">${{ Number(p.monthly_rent || 0).toLocaleString() }}</strong>
+              </div>
+              <div class="metric-row">
+                <span>Status</span>
+                <strong>{{ p.tenant_name ? 'Occupied' : 'Available' }}</strong>
+              </div>
+            </div>
+
+            <div class="card-actions">
+              <button @click="editPropertyRecord(p)" class="btn-small">Edit</button>
+              <button @click="viewPropertyDetails(p.property_id)" class="btn-small btn-accent">View Details</button>
+              <button @click="deletePropertyRecord(p.property_id)" class="btn-small btn-danger">Delete</button>
+            </div>
+          </article>
+        </div>
       </div>
 
-      <!-- Properties List -->
-      <div v-if="properties.length === 0" class="empty-state">
-        No properties found. Add your first property above!
-      </div>
-
-      <div v-else class="properties-grid">
-        <div v-for="p in properties" :key="p.property_id" class="property-card">
-          <div class="card-header">
-            <h3>{{ p.address }}</h3>
-            <span class="property-id">ID: {{ p.property_id }}</span>
+      <!-- INCOME TAB -->
+      <div v-if="activeTab === 'income'" class="tab-content">
+        <section class="section-header">
+          <div>
+            <p class="section-kicker">Cash inflow</p>
+            <h2>Income Records</h2>
           </div>
-          
-          <div class="card-details">
-            <p><strong>City:</strong> {{ p.city }}, {{ p.state }} {{ p.postal_code || '—' }}</p>
-            <p><strong>Type:</strong> {{ p.property_type || '—' }}</p>
-            <p><strong>Tenant:</strong> {{ p.tenant_name || 'Vacant' }}</p>
-            <p><strong>Monthly Rent:</strong> <span class="highlight">${{ p.monthly_rent || 0 }}</span></p>
+        </section>
+
+        <div class="form-card glass-card">
+          <h3>Select Property</h3>
+          <div class="form-group">
+            <select v-model.number="selectedPropertyForIncome" class="select-large">
+              <option value="">-- Select a Property --</option>
+              <option v-for="p in properties" :key="p.property_id" :value="p.property_id">
+                {{ p.address }} (ID: {{ p.property_id }})
+              </option>
+            </select>
           </div>
-          
-          <div class="card-actions">
-            <button @click="editPropertyRecord(p)" class="btn-small btn-edit">Edit</button>
-            <button @click="viewPropertyDetails(p.property_id)" class="btn-small btn-info">View Details</button>
-            <button @click="deletePropertyRecord(p.property_id)" class="btn-small btn-delete">Delete</button>
+        </div>
+
+        <div v-if="selectedPropertyForIncome" class="form-card glass-card">
+          <h3>Add Income Record</h3>
+          <div class="form-grid compact-grid">
+            <input v-model.number="newIncome.amount" type="number" placeholder="Amount" step="0.01" />
+            <input v-model="newIncome.date" type="date" />
+            <input v-model="newIncome.description" placeholder="Description (e.g., Monthly Rent)" class="span-2" />
+          </div>
+          <button @click="addIncome" class="btn-primary inline-button">Record Income</button>
+        </div>
+
+        <div v-if="!selectedPropertyForIncome" class="empty-state glass-card">
+          <div class="empty-icon">⌁</div>
+          <p>Select a property to view and add income records.</p>
+        </div>
+
+        <div v-else-if="incomeRecords.length === 0" class="empty-state glass-card">
+          <div class="empty-icon">⌁</div>
+          <p>No income records for this property.</p>
+        </div>
+
+        <div v-else class="records-grid">
+          <div v-for="inc in incomeRecords" :key="inc.income_id" class="record-card income glass-card">
+            <div class="record-header">
+              <span class="record-id">#{{ inc.income_id }}</span>
+              <span class="record-date">{{ formatDate(inc.date) }}</span>
+            </div>
+            <p class="record-amount">${{ inc.amount }}</p>
+            <p class="record-description">{{ inc.income_description || 'No description' }}</p>
           </div>
         </div>
-      </div>
-    </div>
 
-    <!-- INCOME TAB -->
-    <div v-if="activeTab === 'income'" class="tab-content">
-      <h2>Income Records</h2>
-      
-      <!-- Select Property for Income -->
-      <div class="form-card">
-        <h3>Select Property</h3>
-        <div class="form-group">
-          <select v-model.number="selectedPropertyForIncome" class="select-large">
-            <option value="">-- Select a Property --</option>
-            <option v-for="p in properties" :key="p.property_id" :value="p.property_id">
-              {{ p.address }} (ID: {{ p.property_id }})
-            </option>
-          </select>
+        <div v-if="selectedPropertyForIncome && incomeRecords.length > 0" class="summary-card glass-card">
+          <h4>Income Summary</h4>
+          <p><strong>Total Income:</strong> <span class="highlight success">${{ calculateTotalIncome() }}</span></p>
+          <p><strong>Records Count:</strong> {{ incomeRecords.length }}</p>
         </div>
       </div>
 
-      <!-- Add Income Form -->
-      <div v-if="selectedPropertyForIncome" class="form-card">
-        <h3>Add Income Record</h3>
-        <div class="form-group">
-          <input v-model.number="newIncome.amount" type="number" placeholder="Amount" step="0.01" />
-          <input v-model="newIncome.date" type="date" />
-          <input v-model="newIncome.description" placeholder="Description (e.g., Monthly Rent)" />
-          
-          <button @click="addIncome" class="btn-primary">Record Income</button>
-        </div>
-      </div>
-
-      <!-- Income Records List -->
-      <div v-if="!selectedPropertyForIncome" class="empty-state">
-        Select a property to view and add income records
-      </div>
-
-      <div v-else-if="incomeRecords.length === 0" class="empty-state">
-        No income records for this property
-      </div>
-
-      <div v-else class="records-grid">
-        <div v-for="inc in incomeRecords" :key="inc.income_id" class="record-card income">
-          <div class="record-header">
-            <span class="record-id">#{{ inc.income_id }}</span>
-            <span class="record-date">{{ formatDate(inc.date) }}</span>
+      <!-- EXPENSES TAB -->
+      <div v-if="activeTab === 'expenses'" class="tab-content">
+        <section class="section-header">
+          <div>
+            <p class="section-kicker">Cash outflow</p>
+            <h2>Expense Records</h2>
           </div>
-          <p class="record-amount">${{ inc.amount }}</p>
-          <p class="record-description">{{ inc.income_description || 'No description' }}</p>
-        </div>
-      </div>
+        </section>
 
-      <!-- Income Summary -->
-      <div v-if="selectedPropertyForIncome && incomeRecords.length > 0" class="summary-card">
-        <h4>Income Summary</h4>
-        <p><strong>Total Income:</strong> <span class="highlight success">${{ calculateTotalIncome() }}</span></p>
-        <p><strong>Records Count:</strong> {{ incomeRecords.length }}</p>
-      </div>
-    </div>
-
-    <!-- EXPENSES TAB -->
-    <div v-if="activeTab === 'expenses'" class="tab-content">
-      <h2>Expense Records</h2>
-      
-      <!-- Select Property for Expenses -->
-      <div class="form-card">
-        <h3>Select Property</h3>
-        <div class="form-group">
-          <select v-model.number="selectedPropertyForExpense" class="select-large">
-            <option value="">-- Select a Property --</option>
-            <option v-for="p in properties" :key="p.property_id" :value="p.property_id">
-              {{ p.address }} (ID: {{ p.property_id }})
-            </option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Add Expense Form -->
-      <div v-if="selectedPropertyForExpense" class="form-card">
-        <h3>Add Expense Record</h3>
-        <div class="form-group">
-          <input v-model.number="newExpense.amount" type="number" placeholder="Amount" step="0.01" />
-          <input v-model="newExpense.date" type="date" />
-          <input v-model="newExpense.description" placeholder="Description (e.g., Maintenance, Repairs)" />
-          
-          <button @click="addExpense" class="btn-primary">Record Expense</button>
-        </div>
-      </div>
-
-      <!-- Expense Records List -->
-      <div v-if="!selectedPropertyForExpense" class="empty-state">
-        Select a property to view and add expense records
-      </div>
-
-      <div v-else-if="expenseRecords.length === 0" class="empty-state">
-        No expense records for this property
-      </div>
-
-      <div v-else class="records-grid">
-        <div v-for="exp in expenseRecords" :key="exp.expense_id" class="record-card expense">
-          <div class="record-header">
-            <span class="record-id">#{{ exp.expense_id }}</span>
-            <span class="record-date">{{ formatDate(exp.date) }}</span>
+        <div class="form-card glass-card">
+          <h3>Select Property</h3>
+          <div class="form-group">
+            <select v-model.number="selectedPropertyForExpense" class="select-large">
+              <option value="">-- Select a Property --</option>
+              <option v-for="p in properties" :key="p.property_id" :value="p.property_id">
+                {{ p.address }} (ID: {{ p.property_id }})
+              </option>
+            </select>
           </div>
-          <p class="record-amount">${{ exp.amount }}</p>
-          <p class="record-description">{{ exp.expense_description || 'No description' }}</p>
+        </div>
+
+        <div v-if="selectedPropertyForExpense" class="form-card glass-card">
+          <h3>Add Expense Record</h3>
+          <div class="form-grid compact-grid">
+            <input v-model.number="newExpense.amount" type="number" placeholder="Amount" step="0.01" />
+            <input v-model="newExpense.date" type="date" />
+            <input v-model="newExpense.description" placeholder="Description (e.g., Maintenance, Repairs)" class="span-2" />
+          </div>
+          <button @click="addExpense" class="btn-primary inline-button">Record Expense</button>
+        </div>
+
+        <div v-if="!selectedPropertyForExpense" class="empty-state glass-card">
+          <div class="empty-icon">⌁</div>
+          <p>Select a property to view and add expense records.</p>
+        </div>
+
+        <div v-else-if="expenseRecords.length === 0" class="empty-state glass-card">
+          <div class="empty-icon">⌁</div>
+          <p>No expense records for this property.</p>
+        </div>
+
+        <div v-else class="records-grid">
+          <div v-for="exp in expenseRecords" :key="exp.expense_id" class="record-card expense glass-card">
+            <div class="record-header">
+              <span class="record-id">#{{ exp.expense_id }}</span>
+              <span class="record-date">{{ formatDate(exp.date) }}</span>
+            </div>
+            <p class="record-amount">${{ exp.amount }}</p>
+            <p class="record-description">{{ exp.expense_description || 'No description' }}</p>
+          </div>
+        </div>
+
+        <div v-if="selectedPropertyForExpense && expenseRecords.length > 0" class="summary-card glass-card">
+          <h4>Expense Summary</h4>
+          <p><strong>Total Expenses:</strong> <span class="highlight danger">${{ calculateTotalExpenses() }}</span></p>
+          <p><strong>Records Count:</strong> {{ expenseRecords.length }}</p>
         </div>
       </div>
 
-      <!-- Expense Summary -->
-      <div v-if="selectedPropertyForExpense && expenseRecords.length > 0" class="summary-card">
-        <h4>Expense Summary</h4>
-        <p><strong>Total Expenses:</strong> <span class="highlight danger">${{ calculateTotalExpenses() }}</span></p>
-        <p><strong>Records Count:</strong> {{ expenseRecords.length }}</p>
-      </div>
-    </div>
+      <!-- ANALYTICS TAB -->
+      <div v-if="activeTab === 'analytics'" class="tab-content">
+        <section class="section-header">
+          <div>
+            <p class="section-kicker">Portfolio performance</p>
+            <h2>Financial Analytics</h2>
+          </div>
+        </section>
 
-    <!-- ANALYTICS TAB -->
-    <div v-if="activeTab === 'analytics'" class="tab-content">
-      <h2>Financial Analytics</h2>
+        <div class="form-card glass-card">
+          <h3>Select Property</h3>
+          <div class="form-group">
+            <select v-model.number="selectedPropertyForAnalytics" class="select-large">
+              <option value="">-- Select a Property --</option>
+              <option v-for="p in properties" :key="p.property_id" :value="p.property_id">
+                {{ p.address }} (ID: {{ p.property_id }})
+              </option>
+            </select>
+          </div>
+        </div>
 
-      <!-- Select Property for Analytics -->
-      <div class="form-card">
-        <h3>Select Property</h3>
-        <div class="form-group">
-          <select v-model.number="selectedPropertyForAnalytics" class="select-large">
-            <option value="">-- Select a Property --</option>
-            <option v-for="p in properties" :key="p.property_id" :value="p.property_id">
-              {{ p.address }} (ID: {{ p.property_id }})
-            </option>
-          </select>
+        <div v-if="selectedPropertyForAnalytics" class="analytics-dashboard">
+          <div class="analytics-card glass-card">
+            <h4>Total Income</h4>
+            <p class="analytics-value success">${{ calculateTotalIncomeForProperty(selectedPropertyForAnalytics) }}</p>
+            <p class="analytics-subtitle">All-time income</p>
+          </div>
+
+          <div class="analytics-card glass-card">
+            <h4>Total Expenses</h4>
+            <p class="analytics-value danger">${{ calculateTotalExpensesForProperty(selectedPropertyForAnalytics) }}</p>
+            <p class="analytics-subtitle">All-time expenses</p>
+          </div>
+
+          <div class="analytics-card glass-card">
+            <h4>Net Income</h4>
+            <p class="analytics-value" :class="{ success: netIncome >= 0, danger: netIncome < 0 }">
+              ${{ netIncome }}
+            </p>
+            <p class="analytics-subtitle">Income minus expenses</p>
+          </div>
+
+          <div class="analytics-card glass-card">
+            <h4>Monthly Rent</h4>
+            <p class="analytics-value">${{ getPropertyMonthlyRent(selectedPropertyForAnalytics) }}</p>
+            <p class="analytics-subtitle">Recurring revenue</p>
+          </div>
+        </div>
+
+        <div v-else class="empty-state glass-card">
+          <div class="empty-icon">◫</div>
+          <p>Select a property to view financial analytics.</p>
         </div>
       </div>
 
-      <!-- Analytics Dashboard -->
-      <div v-if="selectedPropertyForAnalytics" class="analytics-dashboard">
-        <div class="analytics-card">
-          <h4>Total Income</h4>
-          <p class="analytics-value success">${{ calculateTotalIncomeForProperty(selectedPropertyForAnalytics) }}</p>
-          <p class="analytics-subtitle">All-time income</p>
+      <transition name="slide">
+        <div v-if="message" :class="['message', `message-${message.type}`]">
+          {{ message.text }}
         </div>
+      </transition>
 
-        <div class="analytics-card">
-          <h4>Total Expenses</h4>
-          <p class="analytics-value danger">${{ calculateTotalExpensesForProperty(selectedPropertyForAnalytics) }}</p>
-          <p class="analytics-subtitle">All-time expenses</p>
-        </div>
+      <div v-if="showDetailsModal" class="modal" @click.self="showDetailsModal = false">
+        <div class="modal-content glass-card">
+          <button class="modal-close" @click="showDetailsModal = false">×</button>
 
-        <div class="analytics-card">
-          <h4>Net Income</h4>
-          <p class="analytics-value" :class="{ success: netIncome >= 0, danger: netIncome < 0 }">
-            ${{ netIncome }}
-          </p>
-          <p class="analytics-subtitle">Income minus Expenses</p>
-        </div>
-
-        <div class="analytics-card">
-          <h4>Monthly Rent</h4>
-          <p class="analytics-value">${{ getPropertyMonthlyRent(selectedPropertyForAnalytics) }}</p>
-          <p class="analytics-subtitle">Recurring revenue</p>
-        </div>
-      </div>
-
-      <div v-else class="empty-state">
-        Select a property to view financial analytics
-      </div>
-    </div>
-
-    <!-- Notification Messages -->
-    <transition name="slide">
-      <div v-if="message" :class="['message', `message-${message.type}`]">
-        {{ message.text }}
-      </div>
-    </transition>
-
-    <!-- Property Details Modal -->
-    <div v-if="showDetailsModal" class="modal" @click.self="showDetailsModal = false">
-      <div class="modal-content">
-        <button class="modal-close" @click="showDetailsModal = false">×</button>
-        <h3>{{ detailsProperty?.address }}</h3>
-        <div class="modal-details">
-          <p><strong>Property ID:</strong> {{ detailsProperty?.property_id }}</p>
-          <p><strong>Address:</strong> {{ detailsProperty?.address }}, {{ detailsProperty?.city }}, {{ detailsProperty?.state }} {{ detailsProperty?.postal_code }}</p>
-          <p><strong>Type:</strong> {{ detailsProperty?.property_type }}</p>
-          <p><strong>Tenant:</strong> {{ detailsProperty?.tenant_name || 'Vacant' }}</p>
-          <p><strong>Monthly Rent:</strong> ${{ detailsProperty?.monthly_rent }}</p>
-          
-          <hr />
-          
-          <h4>Income ({{ propertyIncomeForDetails.length }})</h4>
-          <div v-if="propertyIncomeForDetails.length === 0" class="sub-empty">No income records</div>
-          <div v-else class="record-list">
-            <div v-for="inc in propertyIncomeForDetails" :key="inc.income_id" class="record-item">
-              <span>{{ formatDate(inc.date) }}</span>
-              <span class="success">${{ inc.amount }}</span>
-              <span class="text-muted">{{ inc.income_description }}</span>
+          <div class="detail-hero" :style="{ backgroundImage: `url(${generatePropertyImage(detailsProperty || {})})` }">
+            <div class="media-overlay"></div>
+            <div class="detail-hero-content">
+              <p class="section-kicker light">Property details</p>
+              <h3>{{ detailsProperty?.address }}</h3>
+              <p>{{ detailsProperty?.city }}, {{ detailsProperty?.state }} {{ detailsProperty?.postal_code }}</p>
             </div>
           </div>
 
-          <h4 style="margin-top: 20px;">Expenses ({{ propertyExpensesForDetails.length }})</h4>
-          <div v-if="propertyExpensesForDetails.length === 0" class="sub-empty">No expense records</div>
-          <div v-else class="record-list">
-            <div v-for="exp in propertyExpensesForDetails" :key="exp.expense_id" class="record-item">
-              <span>{{ formatDate(exp.date) }}</span>
-              <span class="danger">${{ exp.amount }}</span>
-              <span class="text-muted">{{ exp.expense_description }}</span>
+          <div class="modal-details">
+            <p><strong>Property ID:</strong> {{ detailsProperty?.property_id }}</p>
+            <p><strong>Type:</strong> {{ detailsProperty?.property_type || '—' }}</p>
+            <p><strong>Tenant:</strong> {{ detailsProperty?.tenant_name || 'Vacant' }}</p>
+            <p><strong>Monthly Rent:</strong> ${{ detailsProperty?.monthly_rent }}</p>
+
+            <hr />
+
+            <h4>Income ({{ propertyIncomeForDetails.length }})</h4>
+            <div v-if="propertyIncomeForDetails.length === 0" class="sub-empty">No income records</div>
+            <div v-else class="record-list">
+              <div v-for="inc in propertyIncomeForDetails" :key="inc.income_id" class="record-item">
+                <span>{{ formatDate(inc.date) }}</span>
+                <span class="success">${{ inc.amount }}</span>
+                <span class="text-muted">{{ inc.income_description }}</span>
+              </div>
+            </div>
+
+            <h4 style="margin-top: 24px;">Expenses ({{ propertyExpensesForDetails.length }})</h4>
+            <div v-if="propertyExpensesForDetails.length === 0" class="sub-empty">No expense records</div>
+            <div v-else class="record-list">
+              <div v-for="exp in propertyExpensesForDetails" :key="exp.expense_id" class="record-item">
+                <span>{{ formatDate(exp.date) }}</span>
+                <span class="danger">${{ exp.amount }}</span>
+                <span class="text-muted">{{ exp.expense_description }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -295,7 +349,6 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 
-// State
 const activeTab = ref('properties')
 const properties = ref([])
 const incomeRecords = ref([])
@@ -307,12 +360,10 @@ const detailsProperty = ref(null)
 const propertyIncomeForDetails = ref([])
 const propertyExpensesForDetails = ref([])
 
-// Selected properties for different tabs
 const selectedPropertyForIncome = ref('')
 const selectedPropertyForExpense = ref('')
 const selectedPropertyForAnalytics = ref('')
 
-// Form data
 const newProperty = ref({
   address: '',
   city: '',
@@ -336,10 +387,6 @@ const newExpense = ref({
 })
 
 const API_BASE_URL = 'https://prop-mgmt-api-807815759229.us-central1.run.app'
-
-// ============================================================================
-// UTILITY FUNCTIONS
-// ============================================================================
 
 function formatDate(dateString) {
   if (!dateString) return 'N/A'
@@ -371,9 +418,63 @@ function resetForms() {
   newExpense.value = { amount: '', date: '', description: '' }
 }
 
-// ============================================================================
-// PROPERTIES ENDPOINTS
-// ============================================================================
+function stringToSeed(input = '') {
+  return String(input)
+    .split('')
+    .reduce((acc, char) => acc + char.charCodeAt(0), 0)
+}
+
+function generatePropertyImage(property) {
+  const descriptor = `${property?.address || ''} ${property?.city || ''} ${property?.property_type || ''}`
+  const seed = stringToSeed(descriptor)
+  const sky = ['#d9d4cb', '#d6d1c8', '#d8ddd8', '#d4d0cb'][seed % 4]
+  const ground = ['#c7b8a3', '#b7b0a7', '#bcae9d', '#c4b9aa'][seed % 4]
+  const house = ['#7a6f66', '#6f766f', '#84786d', '#72685f'][seed % 4]
+  const roof = ['#4f4a45', '#58524b', '#4b524e', '#554c46'][seed % 4]
+  const accent = ['#a89f8d', '#9aa295', '#b0a08e', '#9f9687'][seed % 4]
+  const windows = ['#f3efe8', '#efeae2', '#f5f2ec', '#ece7de'][seed % 4]
+
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 480">
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${sky}" />
+          <stop offset="100%" stop-color="#f5f3ef" />
+        </linearGradient>
+        <linearGradient id="ground" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="${ground}" />
+          <stop offset="100%" stop-color="#ddd6ca" />
+        </linearGradient>
+      </defs>
+      <rect width="800" height="480" fill="url(#sky)" />
+      <circle cx="652" cy="94" r="42" fill="#f3eee5" opacity="0.95" />
+      <rect y="332" width="800" height="148" fill="url(#ground)" />
+      <rect x="96" y="298" width="608" height="24" rx="12" fill="#b7aa97" opacity="0.45"/>
+      <rect x="206" y="180" width="388" height="156" rx="10" fill="${house}" />
+      <polygon points="180,208 400,96 620,208" fill="${roof}" />
+      <rect x="370" y="238" width="70" height="98" rx="6" fill="${accent}" />
+      <rect x="252" y="226" width="72" height="58" rx="6" fill="${windows}" />
+      <rect x="478" y="226" width="72" height="58" rx="6" fill="${windows}" />
+      <rect x="250" y="226" width="76" height="8" rx="4" fill="#c7c1b7" opacity="0.7" />
+      <rect x="476" y="226" width="76" height="8" rx="4" fill="#c7c1b7" opacity="0.7" />
+      <rect x="115" y="244" width="74" height="92" rx="8" fill="#8c8378" opacity="0.9" />
+      <circle cx="140" cy="272" r="26" fill="#9ea18e" />
+      <circle cx="164" cy="262" r="24" fill="#8f9480" />
+      <circle cx="157" cy="287" r="22" fill="#a9ab97" />
+      <rect x="154" y="286" width="9" height="50" rx="4" fill="#786d60" />
+      <rect x="605" y="246" width="74" height="90" rx="8" fill="#8d8479" opacity="0.9" />
+      <circle cx="629" cy="272" r="24" fill="#9ea18e" />
+      <circle cx="652" cy="262" r="22" fill="#8f9480" />
+      <circle cx="645" cy="286" r="20" fill="#a9ab97" />
+      <rect x="640" y="286" width="9" height="50" rx="4" fill="#786d60" />
+      <text x="400" y="434" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#5b544d" opacity="0.72">
+        ${String(property?.property_type || 'Property').slice(0, 20)}
+      </text>
+    </svg>
+  `
+
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`
+}
 
 async function loadProperties() {
   try {
@@ -392,12 +493,14 @@ async function saveProperty() {
     return
   }
 
+  const isEditing = !!editingProperty.value
+
   try {
-    const url = editingProperty.value
+    const url = isEditing
       ? `${API_BASE_URL}/properties/${editingProperty.value.property_id}`
       : `${API_BASE_URL}/properties`
-    
-    const method = editingProperty.value ? 'PUT' : 'POST'
+
+    const method = isEditing ? 'PUT' : 'POST'
 
     const response = await fetch(url, {
       method,
@@ -418,7 +521,7 @@ async function saveProperty() {
     await loadProperties()
     resetForms()
     editingProperty.value = null
-    showMessage(editingProperty.value ? 'Property updated!' : 'Property added!')
+    showMessage(isEditing ? 'Property updated!' : 'Property added!')
   } catch (error) {
     console.error('Error saving property:', error)
     showMessage('Failed to save property', 'error')
@@ -474,10 +577,6 @@ async function viewPropertyDetails(propertyId) {
   }
 }
 
-// ============================================================================
-// INCOME ENDPOINTS
-// ============================================================================
-
 async function loadIncomeRecords() {
   if (!selectedPropertyForIncome.value) return
 
@@ -518,10 +617,6 @@ async function addIncome() {
     showMessage('Failed to add income record', 'error')
   }
 }
-
-// ============================================================================
-// EXPENSES ENDPOINTS
-// ============================================================================
 
 async function loadExpenseRecords() {
   if (!selectedPropertyForExpense.value) return
@@ -564,10 +659,6 @@ async function addExpense() {
   }
 }
 
-// ============================================================================
-// ANALYTICS & COMPUTED VALUES
-// ============================================================================
-
 function calculateTotalIncome() {
   return incomeRecords.value.reduce((sum, inc) => sum + (inc.amount || 0), 0).toFixed(2)
 }
@@ -576,11 +667,11 @@ function calculateTotalExpenses() {
   return expenseRecords.value.reduce((sum, exp) => sum + (exp.amount || 0), 0).toFixed(2)
 }
 
-function calculateTotalIncomeForProperty(propertyId) {
+function calculateTotalIncomeForProperty() {
   return propertyIncomeForDetails.value.reduce((sum, inc) => sum + (inc.amount || 0), 0).toFixed(2)
 }
 
-function calculateTotalExpensesForProperty(propertyId) {
+function calculateTotalExpensesForProperty() {
   return propertyExpensesForDetails.value.reduce((sum, exp) => sum + (exp.amount || 0), 0).toFixed(2)
 }
 
@@ -595,25 +686,35 @@ const netIncome = computed(() => {
   return (income - expenses).toFixed(2)
 })
 
-// ============================================================================
-// WATCHERS & LIFECYCLE
-// ============================================================================
-
 watch(selectedPropertyForIncome, () => {
+  if (!selectedPropertyForIncome.value) incomeRecords.value = []
   loadIncomeRecords()
 })
 
 watch(selectedPropertyForExpense, () => {
+  if (!selectedPropertyForExpense.value) expenseRecords.value = []
   loadExpenseRecords()
 })
 
-watch(selectedPropertyForAnalytics, () => {
+watch(selectedPropertyForAnalytics, async () => {
   propertyIncomeForDetails.value = []
   propertyExpensesForDetails.value = []
-  
-  if (selectedPropertyForAnalytics.value) {
-    loadIncomeRecords()
-    loadExpenseRecords()
+
+  if (!selectedPropertyForAnalytics.value) return
+
+  try {
+    const [incomeRes, expenseRes] = await Promise.all([
+      fetch(`${API_BASE_URL}/properties/${selectedPropertyForAnalytics.value}/income`),
+      fetch(`${API_BASE_URL}/properties/${selectedPropertyForAnalytics.value}/expenses`)
+    ])
+
+    if (!incomeRes.ok || !expenseRes.ok) throw new Error('Failed to fetch analytics details')
+
+    propertyIncomeForDetails.value = await incomeRes.json()
+    propertyExpensesForDetails.value = await expenseRes.json()
+  } catch (error) {
+    console.error('Error loading analytics details:', error)
+    showMessage('Failed to load analytics', 'error')
   }
 })
 
@@ -628,108 +729,233 @@ onMounted(() => {
 }
 
 :root {
-  --primary: #007bff;
-  --success: #28a745;
-  --danger: #dc3545;
-  --warning: #ffc107;
-  --info: #17a2b8;
-  --dark: #343a40;
-  --light: #f8f9fa;
-  --border: #dee2e6;
+  --bg: #f5f2ec;
+  --bg-soft: #efebe4;
+  --surface: rgba(255, 255, 255, 0.72);
+  --surface-strong: rgba(255, 255, 255, 0.88);
+  --border: rgba(91, 84, 77, 0.12);
+  --border-strong: rgba(91, 84, 77, 0.18);
+  --text: #2e2a27;
+  --muted: #6f675f;
+  --muted-soft: #8d847b;
+  --primary: #6d665d;
+  --primary-strong: #534d47;
+  --success: #60735f;
+  --danger: #8b655f;
+  --shadow: 0 18px 50px rgba(57, 48, 40, 0.08);
+  --shadow-soft: 0 8px 24px rgba(57, 48, 40, 0.06);
+  --radius-xl: 26px;
+  --radius-lg: 20px;
+  --radius-md: 14px;
+}
+
+body {
+  margin: 0;
+}
+
+.portal-shell {
+  position: relative;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(199, 190, 178, 0.35), transparent 32%),
+    radial-gradient(circle at right center, rgba(182, 176, 168, 0.18), transparent 24%),
+    linear-gradient(180deg, #f7f4ee 0%, #efe9df 100%);
+  overflow: hidden;
+}
+
+.ambient {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(20px);
+  pointer-events: none;
+}
+
+.ambient-1 {
+  width: 360px;
+  height: 360px;
+  background: rgba(197, 186, 170, 0.16);
+  top: -80px;
+  right: -80px;
+}
+
+.ambient-2 {
+  width: 280px;
+  height: 280px;
+  background: rgba(181, 173, 159, 0.16);
+  bottom: 40px;
+  left: -60px;
 }
 
 .app-container {
-  max-width: 1400px;
+  position: relative;
+  z-index: 1;
+  max-width: 1380px;
   margin: 0 auto;
-  padding: 20px;
-  background-color: var(--light);
+  padding: 32px;
   min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color: var(--text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.eyebrow,
+.section-kicker {
+  margin: 0 0 8px 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted-soft);
+}
+
+.section-kicker.light {
+  color: rgba(255,255,255,0.78);
 }
 
 h1 {
-  color: var(--dark);
-  text-align: center;
+  margin: 0;
+  font-size: clamp(2rem, 3vw, 3rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+
+.page-subtitle {
+  margin: 12px 0 0 0;
+  max-width: 680px;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.header-chip {
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(10px);
+  border-radius: 999px;
+  color: var(--muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.glass-card {
+  background: var(--surface);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-soft);
+}
+
+.nav-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px;
   margin-bottom: 30px;
-  font-size: 32px;
+  background: rgba(255, 255, 255, 0.58);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(14px);
+  border-radius: 999px;
+}
+
+.nav-tabs button {
+  padding: 12px 18px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.nav-tabs button:hover {
+  background: rgba(109, 102, 93, 0.08);
+  color: var(--text);
+}
+
+.nav-tabs button.active {
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 10px 20px rgba(83, 77, 71, 0.18);
+}
+
+.tab-content {
+  animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.section-header {
+  margin-bottom: 18px;
 }
 
 h2 {
-  color: var(--dark);
-  margin-bottom: 20px;
-  border-bottom: 2px solid var(--primary);
-  padding-bottom: 10px;
+  margin: 0;
+  font-size: 1.7rem;
+  letter-spacing: -0.03em;
 }
 
 h3 {
   margin: 0;
-  color: var(--dark);
+  font-size: 1.15rem;
+  color: var(--text);
+  letter-spacing: -0.02em;
 }
 
 h4 {
-  color: var(--dark);
-  margin-top: 15px;
-  margin-bottom: 10px;
+  margin: 0 0 10px 0;
+  color: var(--text);
 }
 
-/* Navigation Tabs */
-.nav-tabs {
+.card-title-row {
   display: flex;
-  gap: 10px;
-  margin-bottom: 30px;
-  border-bottom: 2px solid var(--border);
-  background: white;
-  padding: 0;
-  border-radius: 4px;
-  overflow: hidden;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
 }
 
-.nav-tabs button {
-  padding: 12px 24px;
-  border: none;
-  background-color: transparent;
-  cursor: pointer;
-  font-size: 15px;
-  font-weight: 500;
-  color: #666;
-  transition: all 0.3s ease;
-  border-bottom: 3px solid transparent;
-  margin-bottom: -2px;
+.form-card,
+.summary-card,
+.analytics-card,
+.empty-state,
+.modal-content {
+  border-radius: var(--radius-xl);
 }
 
-.nav-tabs button:hover {
-  color: var(--primary);
-  background-color: rgba(0, 123, 255, 0.05);
-}
-
-.nav-tabs button.active {
-  color: var(--primary);
-  border-bottom-color: var(--primary);
-}
-
-.tab-content {
-  animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Forms */
 .form-card {
-  background: white;
   padding: 24px;
-  border-radius: 8px;
   margin-bottom: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  border: 1px solid var(--border);
 }
 
-.form-card h3 {
-  margin-top: 0;
-  margin-bottom: 20px;
-  color: var(--dark);
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.compact-grid {
+  margin-bottom: 16px;
+}
+
+.span-2 {
+  grid-column: span 2;
 }
 
 .form-group {
@@ -738,1176 +964,498 @@ h4 {
   gap: 12px;
 }
 
-.form-group input,
-.form-group select,
-.form-group textarea {
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  font-size: 14px;
-  font-family: inherit;
-  background: white;
-  transition: all 0.2s ease;
-}
-
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-}
-
-.form-group textarea {
-  resize: vertical;
-  min-height: 80px;
-}
-
+.form-card input,
+.form-card select,
+.form-card textarea,
 .select-large {
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(91, 84, 77, 0.1);
+  background: rgba(255, 255, 255, 0.74);
+  color: var(--text);
   font-size: 14px;
-  background: white;
-  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
+.form-card input::placeholder,
+.form-card textarea::placeholder {
+  color: #9a9188;
+}
+
+.form-card input:focus,
+.form-card select:focus,
+.form-card textarea:focus,
 .select-large:focus {
   outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  border-color: rgba(109, 102, 93, 0.35);
+  box-shadow: 0 0 0 4px rgba(109, 102, 93, 0.08);
 }
 
 .button-group {
   display: flex;
-  gap: 10px;
-  margin-top: 10px;
+  gap: 12px;
+  margin-top: 18px;
 }
 
-/* Buttons */
 .btn-primary,
 .btn-secondary,
-.btn-small,
-.btn-info {
-  padding: 10px 16px;
+.btn-small {
   border: none;
-  border-radius: 6px;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  font-weight: 600;
 }
 
 .btn-primary {
-  background-color: var(--primary);
+  padding: 13px 18px;
+  border-radius: 14px;
+  background: var(--primary);
   color: white;
-  flex: 1;
+  box-shadow: 0 12px 24px rgba(83, 77, 71, 0.18);
 }
 
 .btn-primary:hover {
-  background-color: #0056b3;
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+  background: var(--primary-strong);
 }
 
 .btn-secondary {
-  background-color: #6c757d;
-  color: white;
-  flex: 1;
+  padding: 13px 18px;
+  border-radius: 14px;
+  background: rgba(109, 102, 93, 0.12);
+  color: var(--text);
 }
 
 .btn-secondary:hover {
-  background-color: #5a6268;
+  background: rgba(109, 102, 93, 0.18);
 }
 
-.btn-small {
-  padding: 8px 12px;
-  font-size: 12px;
-  background-color: #e9ecef;
-  color: var(--dark);
+.inline-button {
+  min-width: 180px;
 }
 
-.btn-small:hover {
-  background-color: #dee2e6;
-}
-
-.btn-edit {
-  background-color: var(--info);
-  color: white;
-}
-
-.btn-edit:hover {
-  background-color: #138496;
-}
-
-.btn-delete {
-  background-color: var(--danger);
-  color: white;
-}
-
-.btn-delete:hover {
-  background-color: #c82333;
-}
-
-.btn-info {
-  background-color: var(--info);
-  color: white;
-}
-
-.btn-info:hover {
-  background-color: #138496;
-}
-
-/* Cards Grid */
 .properties-grid,
-.records-grid {
+.records-grid,
+.analytics-dashboard {
   display: grid;
+  gap: 22px;
+}
+
+.properties-grid {
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
-  margin-bottom: 30px;
+}
+
+.records-grid {
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.analytics-dashboard {
+  margin-top: 28px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
 .property-card,
-.record-card {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  border: 1px solid var(--border);
-  transition: all 0.3s ease;
+.record-card,
+.analytics-card {
   overflow: hidden;
-}
-
-.property-card:hover,
-.record-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+  border-radius: var(--radius-xl);
 }
 
 .property-card {
-  padding: 20px;
   display: flex;
   flex-direction: column;
 }
 
-.card-header {
+.property-media {
+  position: relative;
+  min-height: 220px;
+  padding: 16px;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.media-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(28, 25, 23, 0.08) 0%, rgba(28, 25, 23, 0.52) 100%);
+}
+
+.media-top-row,
+.media-bottom-row,
+.detail-hero-content {
+  position: relative;
+  z-index: 1;
+}
+
+.media-top-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  gap: 10px;
 }
 
-.card-header h3 {
-  margin: 0;
-  font-size: 18px;
+.property-badge,
+.property-id {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  backdrop-filter: blur(10px);
+}
+
+.property-badge {
+  background: rgba(255,255,255,0.76);
+  color: #423c37;
 }
 
 .property-id {
-  background: var(--light);
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  color: #666;
-  font-weight: 500;
+  background: rgba(40, 35, 31, 0.24);
+  color: rgba(255,255,255,0.92);
+}
+
+.media-bottom-row h3 {
+  color: white;
+  font-size: 1.28rem;
+  margin-bottom: 6px;
+}
+
+.media-bottom-row p {
+  margin: 0;
+  color: rgba(255,255,255,0.82);
+  font-size: 14px;
 }
 
 .card-details {
-  flex: 1;
-  margin-bottom: 15px;
+  padding: 18px 18px 10px;
 }
 
-.card-details p {
-  margin: 8px 0;
+.metric-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(91, 84, 77, 0.08);
   font-size: 14px;
-  color: #666;
 }
 
-.highlight {
-  font-weight: 600;
-  color: var(--primary);
+.metric-row:last-child {
+  border-bottom: none;
+}
+
+.metric-row span {
+  color: var(--muted);
+}
+
+.metric-row strong {
+  color: var(--text);
+}
+
+.money {
+  font-size: 1rem;
 }
 
 .card-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 0 18px 18px;
 }
 
-.card-actions button {
-  flex: 1;
+.btn-small {
+  padding: 11px 12px;
+  border-radius: 12px;
+  background: rgba(109, 102, 93, 0.1);
+  color: var(--text);
 }
 
-/* Record Cards */
-.record-card {
-  padding: 16px;
-  border-left: 4px solid #ccc;
+.btn-small:hover {
+  transform: translateY(-1px);
+  background: rgba(109, 102, 93, 0.16);
+}
+
+.btn-accent {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-accent:hover {
+  background: var(--primary-strong);
+}
+
+.btn-danger {
+  background: rgba(139, 101, 95, 0.14);
+  color: #6e4f49;
+}
+
+.btn-danger:hover {
+  background: rgba(139, 101, 95, 0.22);
+}
+
+.record-card,
+.analytics-card,
+.summary-card {
+  padding: 20px;
 }
 
 .record-card.income {
-  border-left-color: var(--success);
+  border: 1px solid rgba(96, 115, 95, 0.18);
 }
 
 .record-card.expense {
-  border-left-color: var(--danger);
+  border: 1px solid rgba(139, 101, 95, 0.18);
 }
 
 .record-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  color: var(--muted-soft);
   font-size: 12px;
-  color: #999;
+  margin-bottom: 14px;
 }
 
 .record-id {
-  font-weight: 600;
-  color: #333;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.record-date {
+  color: var(--muted-soft);
 }
 
 .record-amount {
-  font-size: 20px;
+  margin: 0 0 8px 0;
+  font-size: 2rem;
   font-weight: 700;
-  margin: 10px 0;
-  color: var(--dark);
+  letter-spacing: -0.03em;
+  color: var(--text);
 }
 
-.record-card.income .record-amount {
+.record-card.income .record-amount,
+.analytics-value.success,
+.highlight.success,
+.success {
   color: var(--success);
 }
 
-.record-card.expense .record-amount {
+.record-card.expense .record-amount,
+.analytics-value.danger,
+.highlight.danger,
+.danger {
   color: var(--danger);
 }
 
-.record-description {
-  margin: 8px 0 0 0;
-  font-size: 13px;
-  color: #666;
-  font-style: italic;
-}
-
-/* Empty State */
-.empty-state {
-  background: white;
-  padding: 60px 20px;
-  border-radius: 8px;
-  text-align: center;
-  color: #999;
-  font-size: 16px;
-  border: 1px solid var(--border);
-}
-
-/* Summary Card */
-.summary-card {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  margin-top: 20px;
-}
-
-.summary-card h4 {
-  margin-top: 0;
-}
-
-.summary-card p {
-  margin: 10px 0;
-  font-size: 15px;
-}
-
-/* Analytics */
-.analytics-dashboard {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  margin-top: 30px;
-}
-
-.analytics-card {
-  background: white;
-  padding: 24px;
-  border-radius: 8px;
-  text-align: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  border: 1px solid var(--border);
+.record-description,
+.analytics-subtitle,
+.summary-card p,
+.modal-details p,
+.sub-empty,
+.text-muted {
+  color: var(--muted);
 }
 
 .analytics-card h4 {
-  margin: 0 0 15px 0;
-  color: #666;
-  font-size: 14px;
+  margin-bottom: 12px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 .analytics-value {
-  font-size: 32px;
+  margin: 0;
+  font-size: 2.15rem;
   font-weight: 700;
-  margin: 10px 0;
+  letter-spacing: -0.04em;
 }
 
-.analytics-value.success {
-  color: var(--success);
+.empty-state {
+  padding: 56px 22px;
+  text-align: center;
 }
 
-.analytics-value.danger {
-  color: var(--danger);
+.empty-icon {
+  font-size: 28px;
+  color: var(--muted-soft);
+  margin-bottom: 12px;
 }
 
-.analytics-subtitle {
-  margin: 10px 0 0 0;
-  font-size: 12px;
-  color: #999;
+.empty-state p {
+  margin: 0;
+  color: var(--muted);
 }
 
-/* Modal */
 .modal {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  inset: 0;
+  background: rgba(25, 22, 19, 0.38);
+  backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 24px;
   z-index: 1000;
-  padding: 20px;
 }
 
 .modal-content {
-  background: white;
-  border-radius: 8px;
-  padding: 30px;
-  max-width: 600px;
-  width: 100%;
-  max-height: 80vh;
-  overflow-y: auto;
   position: relative;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  width: min(760px, 100%);
+  max-height: 86vh;
+  overflow-y: auto;
+  padding: 18px;
 }
 
 .modal-close {
   position: absolute;
-  top: 15px;
-  right: 15px;
-  background: none;
+  top: 16px;
+  right: 16px;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
   border: none;
-  font-size: 28px;
-  color: #999;
+  background: rgba(255,255,255,0.78);
+  color: var(--text);
+  font-size: 24px;
   cursor: pointer;
-  padding: 0;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  z-index: 3;
 }
 
-.modal-close:hover {
-  color: var(--dark);
+.detail-hero {
+  position: relative;
+  min-height: 210px;
+  padding: 20px;
+  border-radius: 20px;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: end;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.detail-hero-content h3,
+.detail-hero-content p {
+  position: relative;
+  margin: 0;
+  color: white;
+}
+
+.detail-hero-content h3 {
+  font-size: 1.55rem;
+  margin-bottom: 6px;
 }
 
 .modal-details {
-  color: #333;
-}
-
-.modal-details p {
-  margin: 10px 0;
-  font-size: 14px;
+  padding: 4px 6px 8px;
 }
 
 .modal-details hr {
-  margin: 20px 0;
   border: none;
-  border-top: 1px solid var(--border);
-}
-
-.sub-empty {
-  color: #999;
-  font-style: italic;
-  padding: 10px;
+  border-top: 1px solid rgba(91, 84, 77, 0.12);
+  margin: 22px 0;
 }
 
 .record-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .record-item {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 110px 90px 1fr;
+  gap: 12px;
   align-items: center;
-  padding: 10px;
-  background: var(--light);
-  border-radius: 4px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.62);
+  border: 1px solid rgba(91, 84, 77, 0.08);
   font-size: 13px;
 }
 
-.record-item span:nth-child(1) {
-  color: #999;
-  min-width: 90px;
-}
-
-.record-item span.success {
-  color: var(--success);
-  font-weight: 600;
-}
-
-.record-item span.danger {
-  color: var(--danger);
-  font-weight: 600;
-}
-
-.record-item span.text-muted {
-  color: #999;
-  margin-left: auto;
-  text-align: right;
-  flex-grow: 1;
-}
-
-/* Messages */
 .message {
   position: fixed;
-  top: 20px;
-  right: 20px;
-  padding: 16px 20px;
-  border-radius: 6px;
+  top: 22px;
+  right: 22px;
+  padding: 14px 18px;
+  border-radius: 14px;
   color: white;
-  z-index: 1001;
-  font-weight: 500;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-weight: 600;
+  z-index: 1002;
+  box-shadow: var(--shadow);
 }
 
 .message-success {
-  background-color: var(--success);
+  background: var(--success);
 }
 
 .message-error {
-  background-color: var(--danger);
+  background: var(--danger);
 }
 
 .slide-enter-active,
 .slide-leave-active {
-  transition: all 0.3s ease;
+  transition: all 0.28s ease;
 }
 
 .slide-enter-from,
 .slide-leave-to {
-  transform: translateX(400px);
+  transform: translateY(-12px);
   opacity: 0;
 }
 
-/**
-
-    <!-- Tab Navigation -->
-    <div class="nav-tabs">
-      <button 
-        @click="activeTab = 'properties'" 
-        :class="{ active: activeTab === 'properties' }">
-        Properties
-      </button>
-      <button 
-        @click="activeTab = 'income'" 
-        :class="{ active: activeTab === 'income' }">
-        Income
-      </button>
-      <button 
-        @click="activeTab = 'expenses'" 
-        :class="{ active: activeTab === 'expenses' }">
-        Expenses
-      </button>
-    </div>
+@media (max-width: 900px) {
+  .page-header {
+    flex-direction: column;
+  }
 
-    <!-- PROPERTIES TAB -->
-    <div v-if="activeTab === 'properties'" class="tab-content">
-      <div class="form-card">
-        <h2>Add New Property</h2>
-        <div class="form-group">
-          <input v-model="newName" placeholder="Property name" class="form-input" />
-          <input v-model="newAddress" placeholder="Address" class="form-input" />
-          <input v-model="newCity" placeholder="City" class="form-input" />
-          <input v-model="newState" placeholder="State" class="form-input" />
-          <button @click="addProperty" class="btn-primary">Add Property</button>
-        </div>
-      </div>
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
 
-      <div v-if="properties.length === 0" class="empty-state">
-        No properties found. Add your first property above!
-      </div>
+  .span-2 {
+    grid-column: span 1;
+  }
 
-      <div v-else class="properties-grid">
-        <div v-for="p in properties" :key="p.id" class="property-card">
-          <h3>{{ p.name }}</h3>
-          <p v-if="p.address"><strong>Address:</strong> {{ p.address }}</p>
-          <p v-if="p.city"><strong>City:</strong> {{ p.city }}, {{ p.state }}</p>
-        </div>
-      </div>
-    </div>
+  .card-actions {
+    grid-template-columns: 1fr;
+  }
 
-    <!-- INCOME TAB -->
-    <div v-if="activeTab === 'income'" class="tab-content">
-      <div class="form-card">
-        <h2>Record Income</h2>
-        <div class="form-group">
-          <select v-model.number="selectedPropertyForIncome" class="form-input">
-            <option value="">-- Select a Property --</option>
-            <option v-for="p in properties" :key="p.id" :value="p.id">
-              {{ p.name }}
-            </option>
-          </select>
-          
-          <input 
-            v-model.number="incomeForm.amount" 
-            type="number" 
-            placeholder="Amount" 
-            step="0.01"
-            class="form-input" 
-          />
-          
-          <input 
-            v-model="incomeForm.date" 
-            type="date" 
-            class="form-input" 
-          />
-          
-          <input 
-            v-model="incomeForm.description" 
-            placeholder="Description (e.g., Monthly Rent)" 
-            class="form-input" 
-          />
-          
-          <button @click="addIncome" class="btn-primary" :disabled="!selectedPropertyForIncome">
-            Record Income
-          </button>
-        </div>
-      </div>
-
-      <div v-if="incomeRecords.length === 0" class="empty-state">
-        No income records yet. Add one above!
-      </div>
-
-      <div v-else class="records-grid">
-        <div v-for="inc in incomeRecords" :key="inc.id" class="record-card income-card">
-          <div class="record-header">
-            <span class="record-label">Income</span>
-            <span class="record-date">{{ formatDate(inc.date) }}</span>
-          </div>
-          <p class="record-amount income-amount">${{ inc.amount }}</p>
-          <p class="record-description">{{ inc.description || 'No description' }}</p>
-        </div>
-      </div>
-
-      <div v-if="incomeRecords.length > 0" class="summary-card success">
-        <h4>Income Summary</h4>
-        <p><strong>Total Income:</strong> ${{ calculateTotalIncome() }}</p>
-        <p><strong>Records:</strong> {{ incomeRecords.length }}</p>
-      </div>
-    </div>
-
-    <!-- EXPENSES TAB -->
-    <div v-if="activeTab === 'expenses'" class="tab-content">
-      <div class="form-card">
-        <h2>Record Expense</h2>
-        <div class="form-group">
-          <select v-model.number="selectedPropertyForExpense" class="form-input">
-            <option value="">-- Select a Property --</option>
-            <option v-for="p in properties" :key="p.id" :value="p.id">
-              {{ p.name }}
-            </option>
-          </select>
-          
-          <input 
-            v-model.number="expenseForm.amount" 
-            type="number" 
-            placeholder="Amount" 
-            step="0.01"
-            class="form-input" 
-          />
-          
-          <input 
-            v-model="expenseForm.date" 
-            type="date" 
-            class="form-input" 
-          />
-          
-          <input 
-            v-model="expenseForm.description" 
-            placeholder="Description (e.g., Maintenance, Repairs)" 
-            class="form-input" 
-          />
-          
-          <button @click="addExpense" class="btn-primary" :disabled="!selectedPropertyForExpense">
-            Record Expense
-          </button>
-        </div>
-      </div>
-
-      <div v-if="expenseRecords.length === 0" class="empty-state">
-        No expense records yet. Add one above!
-      </div>
-
-      <div v-else class="records-grid">
-        <div v-for="exp in expenseRecords" :key="exp.id" class="record-card expense-card">
-          <div class="record-header">
-            <span class="record-label">Expense</span>
-            <span class="record-date">{{ formatDate(exp.date) }}</span>
-          </div>
-          <p class="record-amount expense-amount">${{ exp.amount }}</p>
-          <p class="record-description">{{ exp.description || 'No description' }}</p>
-        </div>
-      </div>
-
-      <div v-if="expenseRecords.length > 0" class="summary-card danger">
-        <h4>Expense Summary</h4>
-        <p><strong>Total Expenses:</strong> ${{ calculateTotalExpenses() }}</p>
-        <p><strong>Records:</strong> {{ expenseRecords.length }}</p>
-      </div>
-    </div>
-
-    <!-- Notifications -->
-    <transition name="slide">
-      <div v-if="notification" :class="['notification', `notification-${notification.type}`]">
-        {{ notification.message }}
-      </div>
-    </transition>
-  </div>
-</template>
-
-<script setup>
-import { ref, onMounted } from 'vue'
-
-const API_BASE_URL = 'https://prop-mgmt-api-807815759229.us-central1.run.app'
-
-// Tab State
-const activeTab = ref('properties')
-
-// Properties
-const properties = ref([])
-const newName = ref("")
-const newAddress = ref("")
-const newCity = ref("")
-const newState = ref("")
-
-// Income
-const incomeRecords = ref([])
-const selectedPropertyForIncome = ref("")
-const incomeForm = ref({
-  amount: "",
-  date: "",
-  description: ""
-})
-
-// Expenses
-const expenseRecords = ref([])
-const selectedPropertyForExpense = ref("")
-const expenseForm = ref({
-  amount: "",
-  date: "",
-  description: ""
-})
-
-// Notifications
-const notification = ref(null)
-
-// ============================================================================
-// UTILITY FUNCTIONS
-// ============================================================================
-
-function formatDate(dateString) {
-  if (!dateString) return 'N/A'
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  })
-}
-
-function showNotification(message, type = 'success') {
-  notification.value = { message, type }
-  setTimeout(() => {
-    notification.value = null
-  }, 3000)
-}
-
-// ============================================================================
-// PROPERTIES
-// ============================================================================
-
-async function loadProperties() {
-  try {
-    const res = await fetch(`${API_BASE_URL}/properties`)
-    if (!res.ok) throw new Error('Failed to fetch properties')
-    properties.value = await res.json()
-  } catch (error) {
-    console.error('Error loading properties:', error)
-    showNotification('Failed to load properties', 'error')
+  .record-item {
+    grid-template-columns: 1fr;
   }
 }
 
-async function addProperty() {
-  if (!newName.value.trim()) {
-    showNotification('Please enter a property name', 'error')
-    return
+@media (max-width: 640px) {
+  .app-container {
+    padding: 20px;
   }
 
-  try {
-    const response = await fetch(`${API_BASE_URL}/properties`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        name: newName.value,
-        address: newAddress.value || null,
-        city: newCity.value || null,
-        state: newState.value || null
-      })
-    })
-
-    if (!response.ok) throw new Error('Failed to add property')
-
-    newName.value = ""
-    newAddress.value = ""
-    newCity.value = ""
-    newState.value = ""
-    
-    await loadProperties()
-    showNotification('Property added successfully!')
-  } catch (error) {
-    console.error('Error adding property:', error)
-    showNotification('Failed to add property', 'error')
-  }
-}
-
-// ============================================================================
-// INCOME
-// ============================================================================
-
-async function loadIncomeRecords() {
-  if (!selectedPropertyForIncome.value) {
-    incomeRecords.value = []
-    return
+  .nav-tabs {
+    width: 100%;
+    border-radius: 22px;
   }
 
-  try {
-    const res = await fetch(`${API_BASE_URL}/properties/${selectedPropertyForIncome.value}/income`)
-    if (!res.ok) throw new Error('Failed to fetch income')
-    incomeRecords.value = await res.json()
-  } catch (error) {
-    console.error('Error loading income:', error)
-    showNotification('Failed to load income records', 'error')
-  }
-}
-
-async function addIncome() {
-  if (!selectedPropertyForIncome.value || !incomeForm.value.amount || !incomeForm.value.date) {
-    showNotification('Please fill in all required fields', 'error')
-    return
+  .nav-tabs button {
+    flex: 1 1 calc(50% - 8px);
   }
 
-  try {
-    const response = await fetch(`${API_BASE_URL}/properties/${selectedPropertyForIncome.value}/income`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        amount: parseFloat(incomeForm.value.amount),
-        date: incomeForm.value.date,
-        description: incomeForm.value.description || 'Income'
-      })
-    })
-
-    if (!response.ok) throw new Error('Failed to add income')
-
-    incomeForm.value = { amount: "", date: "", description: "" }
-    await loadIncomeRecords()
-    showNotification('Income record added successfully!')
-  } catch (error) {
-    console.error('Error adding income:', error)
-    showNotification('Failed to add income record', 'error')
-  }
-}
-
-function calculateTotalIncome() {
-  return incomeRecords.value.reduce((sum, inc) => sum + (inc.amount || 0), 0).toFixed(2)
-}
-
-// ============================================================================
-// EXPENSES
-// ============================================================================
-
-async function loadExpenseRecords() {
-  if (!selectedPropertyForExpense.value) {
-    expenseRecords.value = []
-    return
+  .properties-grid,
+  .records-grid,
+  .analytics-dashboard {
+    grid-template-columns: 1fr;
   }
 
-  try {
-    const res = await fetch(`${API_BASE_URL}/properties/${selectedPropertyForExpense.value}/expenses`)
-    if (!res.ok) throw new Error('Failed to fetch expenses')
-    expenseRecords.value = await res.json()
-  } catch (error) {
-    console.error('Error loading expenses:', error)
-    showNotification('Failed to load expense records', 'error')
+  .property-media {
+    min-height: 200px;
   }
-}
-
-async function addExpense() {
-  if (!selectedPropertyForExpense.value || !expenseForm.value.amount || !expenseForm.value.date) {
-    showNotification('Please fill in all required fields', 'error')
-    return
-  }
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/properties/${selectedPropertyForExpense.value}/expenses`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        amount: parseFloat(expenseForm.value.amount),
-        date: expenseForm.value.date,
-        description: expenseForm.value.description || 'Expense'
-      })
-    })
-
-    if (!response.ok) throw new Error('Failed to add expense')
-
-    expenseForm.value = { amount: "", date: "", description: "" }
-    await loadExpenseRecords()
-    showNotification('Expense record added successfully!')
-  } catch (error) {
-    console.error('Error adding expense:', error)
-    showNotification('Failed to add expense record', 'error')
-  }
-}
-
-function calculateTotalExpenses() {
-  return expenseRecords.value.reduce((sum, exp) => sum + (exp.amount || 0), 0).toFixed(2)
-}
-
-// ============================================================================
-// WATCHERS & LIFECYCLE
-// ============================================================================
-
-onMounted(() => {
-  loadProperties()
-})
-
-// Load records when property is selected using watch-like behavior
-import { watch } from 'vue'
-
-watch(selectedPropertyForIncome, () => {
-  loadIncomeRecords()
-})
-
-watch(selectedPropertyForExpense, () => {
-  loadExpenseRecords()
-})
-</script>
-
-<style scoped>
-* {
-  box-sizing: border-box;
-}
-
-:root {
-  --primary: #007bff;
-  --success: #28a745;
-  --danger: #dc3545;
-  --dark: #343a40;
-  --light: #f8f9fa;
-  --border: #dee2e6;
-}
-
-.app-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-  background-color: var(--light);
-  min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-}
-
-h1 {
-  color: var(--dark);
-  text-align: center;
-  margin-bottom: 30px;
-  font-size: 32px;
-}
-
-h2 {
-  color: var(--dark);
-  margin-top: 0;
-  margin-bottom: 20px;
-}
-
-h3 {
-  color: var(--dark);
-  margin-top: 0;
-}
-
-h4 {
-  color: var(--dark);
-  margin: 0 0 10px 0;
-}
-
-/* Navigation Tabs */
-.nav-tabs {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 30px;
-  border-bottom: 2px solid var(--border);
-  background: white;
-  padding: 0;
-  border-radius: 4px 4px 0 0;
-}
-
-.nav-tabs button {
-  padding: 12px 24px;
-  border: none;
-  background-color: transparent;
-  cursor: pointer;
-  font-size: 15px;
-  font-weight: 500;
-  color: #666;
-  transition: all 0.3s ease;
-  border-bottom: 3px solid transparent;
-  margin-bottom: -2px;
-}
-
-.nav-tabs button:hover {
-  color: var(--primary);
-}
-
-.nav-tabs button.active {
-  color: var(--primary);
-  border-bottom-color: var(--primary);
-}
-
-.tab-content {
-  animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Forms */
-.form-card {
-  background: white;
-  padding: 24px;
-  border-radius: 8px;
-  margin-bottom: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  border: 1px solid var(--border);
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.form-input {
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  font-size: 14px;
-  font-family: inherit;
-  background: white;
-  transition: all 0.2s ease;
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-}
-
-/* Buttons */
-.btn-primary {
-  padding: 12px 16px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  background-color: var(--primary);
-  color: white;
-  transition: all 0.2s ease;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background-color: #0056b3;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
-}
-
-.btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Cards */
-.properties-grid,
-.records-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-  margin-bottom: 24px;
-}
-
-.property-card,
-.record-card {
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  border: 1px solid var(--border);
-  transition: all 0.3s ease;
-}
-
-.property-card:hover,
-.record-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
-}
-
-.property-card p {
-  margin: 8px 0;
-  color: #666;
-  font-size: 14px;
-}
-
-/* Record Cards */
-.record-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-  font-size: 12px;
-}
-
-.record-label {
-  font-weight: 600;
-  padding: 4px 8px;
-  border-radius: 4px;
-  background: #f0f0f0;
-}
-
-.record-date {
-  color: #999;
-}
-
-.record-amount {
-  font-size: 24px;
-  font-weight: 700;
-  margin: 12px 0;
-}
-
-.income-card {
-  border-left: 4px solid var(--success);
-}
-
-.income-amount {
-  color: var(--success);
-}
-
-.expense-card {
-  border-left: 4px solid var(--danger);
-}
-
-.expense-amount {
-  color: var(--danger);
-}
-
-.record-description {
-  margin: 8px 0 0 0;
-  font-size: 13px;
-  color: #666;
-  font-style: italic;
-}
-
-/* Empty State */
-.empty-state {
-  background: white;
-  padding: 60px 20px;
-  border-radius: 8px;
-  text-align: center;
-  color: #999;
-  font-size: 16px;
-  border: 1px solid var(--border);
-  margin-bottom: 24px;
-}
-
-/* Summary Cards */
-.summary-card {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  border-left: 4px solid;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-}
-
-.summary-card.success {
-  border-left-color: var(--success);
-}
-
-.summary-card.danger {
-  border-left-color: var(--danger);
-}
-
-.summary-card p {
-  margin: 8px 0;
-  color: #666;
-  font-size: 14px;
-}
-
-/* Notifications */
-.notification {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  padding: 16px 24px;
-  border-radius: 6px;
-  color: white;
-  font-weight: 500;
-  animation: slideUp 0.3s ease;
-  z-index: 1000;
-}
-
-.notification-success {
-  background-color: var(--success);
-}
-
-.notification-error {
-  background-color: var(--danger);
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(100px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.slide-enter-active,
-.slide-leave-active {
-  transition: all 0.3s ease;
-}
-
-.slide-enter-from,
-.slide-leave-to {
-  transform: translateY(100px);
-  opacity: 0;
 }
 </style>
